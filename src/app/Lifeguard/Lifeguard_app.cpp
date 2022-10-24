@@ -7,12 +7,17 @@
 #include "gui/statusbar.h"
 #include "gui/app.h"
 #include "gui/widget.h"
+#include "hardware/motor.h"
+#include "hardware/motion.h"
 
 uint32_t Lifeguard_app_main_tile_num;
 
 icon_t *Lifeguard_app = NULL;
+
+//App icon
 LV_IMG_DECLARE(Lifeguard_64px);
 
+//Initialize routine for app
 void Lifeguard_app_setup( void ) {
         Lifeguard_app_main_tile_num = mainbar_add_app_tile( 2, 1, "Lifeguard" );
         Lifeguard_app = app_register( "Lifeguard", &Lifeguard_64px, Lifeguard_app_enter_event_cb );
