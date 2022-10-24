@@ -23,7 +23,7 @@
 #include "app/fx_rates/fx_rates.h"
 #include "app/IRController/IRController.h"
 #include "app/alarm_clock/alarm_clock.h"
-#include "app/Lifeguard/Lifeguard_app.h"
+#include "app/Lifeguard/Lifeguard.h"
 
 #if defined( NATIVE_64BIT )
     /**
@@ -52,7 +52,7 @@ void setup() {
      * apps here
      */
     
-    Lifeguard_app_setup();
+    LifeguardAppSetup();
     //osmmap_app_setup();
     //weather_app_setup();
     //stopwatch_app_setup();
