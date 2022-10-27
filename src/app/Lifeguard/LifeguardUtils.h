@@ -13,6 +13,9 @@
     #include "gui/widget.h"
     #include "hardware/motor.h"
     #include "hardware/motion.h"
+    #include "gui/mainbar/main_tile/main_tile.h"
+    #include "gui/keyboard.h"
+    #include "utils/json_psram_allocator.h"
 
     lv_obj_t * CreateObject(lv_obj_t * tileObj, lv_obj_t * alignObj);
     lv_obj_t * CreateTextarea(lv_obj_t * baseObj, char value[], lv_event_cb_t event);

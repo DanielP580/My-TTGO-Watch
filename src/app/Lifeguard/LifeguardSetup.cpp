@@ -5,16 +5,8 @@
 #include "config/LifeguardConfig.h"
 #include "LifeguardUtils.h"
 
-#include "gui/mainbar/mainbar.h"
-#include "gui/mainbar/main_tile/main_tile.h"
-#include "gui/statusbar.h"
-#include "gui/keyboard.h"
-#include "gui/widget_factory.h"
-#include "gui/widget_styles.h"
-
 //Tile definition
 lv_obj_t * lifeguardSetupTile = NULL;
-uint32_t lifeguardSetupTime_num;
 
 //Textfields definiton
 lv_obj_t * lifeguardNumber_textfield = NULL;
@@ -31,7 +23,7 @@ static void LifeguardSetupHibernateCallback ( void );
     * Function to Setup Tile Setup
     *
 */
-void LifeguardSetupTileSetup( uint32_t tileNum)
+void LifeguardSetupTileSetup(uint32_t tileNum)
 {
     //In setup get config
     lifeguardConfig_t *lifeguardConfig = GetLifeguardConfig();
@@ -40,8 +32,7 @@ void LifeguardSetupTileSetup( uint32_t tileNum)
     mainbar_add_tile_hibernate_cb( tileNum, LifeguardSetupHibernateCallback);
 
     //Use new tile num and based on that create new object
-    lifeguardSetupTime_num = tileNum;
-    lifeguardSetupTile = mainbar_get_tile_obj( lifeguardSetupTime_num);
+    lifeguardSetupTile = mainbar_get_tile_obj( tileNum);
 
     //Text objects
 
@@ -57,7 +48,7 @@ void LifeguardSetupTileSetup( uint32_t tileNum)
 
     //EmergencyTime line definitions
     lv_obj_t * lifeGuardEmergencyTime_obj = CreateObject( lifeguardSetupTile, lifeGuardNumber_obj);
-    char emergencyTimeName[] = "Emergency time";
+    char emergencyTimeName[] = "Emergency\ntime";
     CreateLabel(lifeGuardEmergencyTime_obj, emergencyTimeName);
     lifeguardEmergencyTime_textfield = CreateTextarea(lifeGuardEmergencyTime_obj, lifeguardConfig->emergencyTime, LifeguardNumTextAreaEventCb);
 
@@ -87,6 +78,7 @@ static void LifeguardSetupHibernateCallback ( void )
     * Function to activate keyboard from text area
     * 
 */
+
 static void LifeguardTextAreaEventCb( lv_obj_t * obj, lv_event_t event)
 {
     switch( event )
@@ -94,6 +86,7 @@ static void LifeguardTextAreaEventCb( lv_obj_t * obj, lv_event_t event)
         case ( LV_EVENT_CLICKED ): keyboard_set_textarea(obj);
     }
 }
+
 
 /* 
     /brief

@@ -3,18 +3,7 @@
 
 #include "Lifeguard.h"
 #include "LifeguardMain.h"
-
-#include "gui/mainbar/app_tile/app_tile.h"
-#include "gui/mainbar/main_tile/main_tile.h"
-#include "gui/mainbar/mainbar.h"
-#include "gui/widget_styles.h"
-#include "gui/statusbar.h"
-#include "gui/app.h"
-#include "gui/widget.h"
-#include "gui/widget_factory.h"
-#include "gui/widget_styles.h"
-#include "hardware/motor.h"
-#include "hardware/motion.h"
+#include "LifeguardUtils.h"
 
 #include "utils/json_psram_allocator.h"
 #include "utils/alloc.h"
@@ -25,6 +14,7 @@ lv_style_t lifeguardMainStyle;
 LV_FONT_DECLARE(Ubuntu_16px);
 
 static void EnterLifeguardSetupEventCb( lv_obj_t * obj, lv_event_t event);
+static void EnterLifeguardBMAEventCb( lv_obj_t * obj, lv_event_t event );
 
 
 /*
@@ -47,13 +37,25 @@ void LifeguardMainTileSetup( uint32_t tileNum)
     lv_obj_align(exitButton, lifeguardMainTile, LV_ALIGN_IN_BOTTOM_LEFT, 10, -10);
 
     lv_obj_t * setupButton = wf_add_setup_button( lifeguardMainTile, EnterLifeguardSetupEventCb, SYSTEM_ICON_STYLE);
-    lv_obj_align(setupButton, lifeguardMainTile, LV_ALIGN_IN_BOTTOM_RIGHT, 10, -10);
+    lv_obj_align(setupButton, lifeguardMainTile, LV_ALIGN_IN_BOTTOM_RIGHT, -10, -10);
+
+    lv_obj_t * BMAButton = wf_add_setup_button( lifeguardMainTile, EnterLifeguardBMAEventCb, SYSTEM_ICON_STYLE);
+    lv_obj_align(BMAButton, lifeguardMainTile, LV_ALIGN_IN_TOP_LEFT, 10, -10);
 
 }
 
-static void EnterLifeguardSetupEventCb( lv_obj_t * obj, lv_event_t event ) {
+static void EnterLifeguardSetupEventCb( lv_obj_t * obj, lv_event_t event ) 
+{
     switch( event ) {
         case( LV_EVENT_CLICKED ):       mainbar_jump_to_tilenumber( GetLifeguard_SetupTileNum(), LV_ANIM_ON, true );
+                                        break;
+    }
+}
+
+static void EnterLifeguardBMAEventCb( lv_obj_t * obj, lv_event_t event ) 
+{
+    switch( event ) {
+        case( LV_EVENT_CLICKED ):       mainbar_jump_to_tilenumber( GetLifeguard_BMATileNum(), LV_ANIM_ON, true );
                                         break;
     }
 }

@@ -1,6 +1,6 @@
-#ifndef  _LIFEGUARD_APP_SETUP_H
-    #define  _LIFEGUARD_APP_SETUP_H
+#ifndef  _LIFEGUARD_SETUP_H
+    #define  _LIFEGUARD_SETUP_H
 
-    void LifeguardSetupTileSetup( uint32_t tileNum);
+    void LifeguardSetupTileSetup(uint32_t tileNum);
 
-#endif // _LIFEGUARD_APP_SETUP_H
+#endif // _LIFEGUARD_SETUP_H
