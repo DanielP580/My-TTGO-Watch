@@ -2,7 +2,9 @@
 #include "quickglui/quickglui.h"
 
 #include "Lifeguard.h"
-#include "LifeguardConfig.h"
+#include "config/LifeguardConfig.h"
+#include "LifeguardSetup.h"
+#include "LifeguardMain.h"
 
 #include "gui/mainbar/mainbar.h"
 #include "gui/widget_styles.h"
@@ -21,37 +23,48 @@ lifeguardConfig_t lifeguardConfig;
 LV_IMG_DECLARE(Lifeguard_64px);
 
 //app icon
-icon_t *lifeguardApp_Icon = NULL;
+icon_t * lifeguard_icon = NULL;
 
 //app tile number
-uint32_t lifeguardApp_MainTileNum;
+uint32_t lifeguardMainTile_num;
+uint32_t lifeguardSetupTile_num;
 
 //callback function
-static void EnterLifeguardAppEventCb( lv_obj_t * obj, lv_event_t event);
+static void EnterLifeguardAppEventCb(lv_obj_t * obj, lv_event_t event);
 
 //Initialize routine for app
-void LifeguardAppSetup( void ) 
+void LifeguardSetup(void) 
 {
     lifeguardConfig.load();
 
-    lifeguardApp_MainTileNum = mainbar_add_app_tile( 1, 1, "lifeguardApp");
+    lifeguardMainTile_num = mainbar_add_app_tile(1, 1, "lifeguardApp");
+    lifeguardSetupTile_num = mainbar_add_app_tile(1, 2, "lifeguardApp");
 
-    lifeguardApp_Icon = app_register( "lifeguard\nApp", &Lifeguard_64px, EnterLifeguardAppEventCb);
+    lifeguard_icon = app_register("lifeguard\nApp", &Lifeguard_64px, EnterLifeguardAppEventCb);
+
+    LifeguardMainTileSetup(lifeguardMainTile_num);
+    LifeguardSetupTileSetup(lifeguardSetupTile_num);
 }
 
 //Return number of lifeguardApp tile
-uint32_t GetLifeguardApp_MainTileNum( void )
+uint32_t GetLifeguard_MainTileNum(void)
 {
-    return lifeguardApp_MainTileNum;
+    return lifeguardMainTile_num;
 }
 
-//return lifeguardApp icon
-icon_t * GetLifeguardApp_Icon( void )
+//Return number of Setup tile
+uint32_t GetLifeguard_SetupTileNum(void)
 {
-    return lifeguardApp_Icon;
+    return lifeguardSetupTile_num;
 }
 
-lifeguardConfig_t *GetLifeguardConfig( void )
+//return lifeguard icon
+icon_t * GetLifeguard_Icon(void)
+{
+    return lifeguard_icon;
+}
+
+lifeguardConfig_t * GetLifeguardConfig(void)
 {
     return &lifeguardConfig;
 }
@@ -60,10 +73,10 @@ lifeguardConfig_t *GetLifeguardConfig( void )
     /brief
     The idea is to create a button to jump into new tile
 */
-static void EnterLifeguardAppEventCb( lv_obj_t * obj, lv_event_t event)
+static void EnterLifeguardAppEventCb(lv_obj_t * obj, lv_event_t event)
 {
-    switch( event )
+    switch(event)
     {
-        case ( LV_EVENT_CLICKED ): mainbar_jump_to_tilenumber( lifeguardApp_MainTileNum, LV_ANIM_OFF, true); break;
+        case (LV_EVENT_CLICKED): mainbar_jump_to_tilenumber(lifeguardMainTile_num, LV_ANIM_OFF, true); break;
     }
 }

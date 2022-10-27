@@ -52,9 +52,9 @@ void setup() {
      * apps here
      */
     
-    LifeguardAppSetup();
+    LifeguardSetup();
     //osmmap_app_setup();
-    weather_app_setup();
+    //weather_app_setup();
     stopwatch_app_setup();
     //tracker_app_setup();
     alarm_clock_setup();
@@ -70,7 +70,7 @@ void setup() {
     powermeter_app_setup();
     FindPhone_setup();
     wifimon_app_setup();
-    calc_app_setup();
+    //calc_app_setup();
     //kodi_remote_app_setup();
     /**
      * post hardware setup
