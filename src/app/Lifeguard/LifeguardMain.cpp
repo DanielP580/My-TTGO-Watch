@@ -26,6 +26,13 @@ LV_FONT_DECLARE(Ubuntu_16px);
 
 static void EnterLifeguardSetupEventCb( lv_obj_t * obj, lv_event_t event);
 
+
+/*
+    /brief
+    *
+    * Function to Setup Main tile
+    *
+*/
 void LifeguardMainTileSetup( uint32_t tileNum)
 {
     lifeguardMainTile = mainbar_get_tile_obj( tileNum);
@@ -39,7 +46,7 @@ void LifeguardMainTileSetup( uint32_t tileNum)
     lv_obj_t * exitButton = wf_add_exit_button( lifeguardMainTile, SYSTEM_ICON_STYLE);
     lv_obj_align(exitButton, lifeguardMainTile, LV_ALIGN_IN_BOTTOM_LEFT, 10, -10);
 
-    lv_obj_t * setupButton = wf_add_exit_button( lifeguardMainTile, EnterLifeguardSetupEventCb, SYSTEM_ICON_STYLE);
+    lv_obj_t * setupButton = wf_add_setup_button( lifeguardMainTile, EnterLifeguardSetupEventCb, SYSTEM_ICON_STYLE);
     lv_obj_align(setupButton, lifeguardMainTile, LV_ALIGN_IN_BOTTOM_RIGHT, 10, -10);
 
 }

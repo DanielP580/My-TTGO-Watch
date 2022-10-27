@@ -3,6 +3,7 @@
 #include "Lifeguard.h"
 #include "LifeguardSetup.h"
 #include "config/LifeguardConfig.h"
+#include "LifeguardUtils.h"
 
 #include "gui/mainbar/mainbar.h"
 #include "gui/mainbar/main_tile/main_tile.h"
@@ -23,11 +24,13 @@ lv_obj_t * lifeguardEmergencyTime_textfield = NULL;
 static void LifeguardTextAreaEventCb( lv_obj_t * obj, lv_event_t event);
 static void LifeguardNumTextAreaEventCb( lv_obj_t * obj, lv_event_t event );
 static void LifeguardSetupHibernateCallback ( void );
-lv_obj_t * CreateObject(lv_obj_t * tileObj, lv_obj_t * alignObj);
-void CreateLabel(lv_obj_t * baseObj, char name[]);
-lv_obj_t * CreateTextarea(lv_obj_t * baseObj, char value[]);
-lv_obj_t * CreateNumTextarea(lv_obj_t * baseObj, char value[]);
 
+/*
+    /brief
+    *
+    * Function to Setup Tile Setup
+    *
+*/
 void LifeguardSetupTileSetup( uint32_t tileNum)
 {
     //In setup get config
@@ -50,58 +53,17 @@ void LifeguardSetupTileSetup( uint32_t tileNum)
     lv_obj_t * lifeGuardNumber_obj = CreateObject( lifeguardSetupTile, header);
     char numberName[] = "Number";
     CreateLabel(lifeGuardNumber_obj, numberName);
-    lifeguardNumber_textfield = CreateNumTextarea(lifeGuardNumber_obj, lifeguardConfig->number);
+    lifeguardNumber_textfield = CreateTextarea(lifeGuardNumber_obj, lifeguardConfig->number, LifeguardNumTextAreaEventCb);
 
     //EmergencyTime line definitions
     lv_obj_t * lifeGuardEmergencyTime_obj = CreateObject( lifeguardSetupTile, lifeGuardNumber_obj);
     char emergencyTimeName[] = "Emergency time";
     CreateLabel(lifeGuardEmergencyTime_obj, emergencyTimeName);
-    lifeguardEmergencyTime_textfield = CreateNumTextarea(lifeGuardEmergencyTime_obj, lifeguardConfig->emergencyTime);
+    lifeguardEmergencyTime_textfield = CreateTextarea(lifeGuardEmergencyTime_obj, lifeguardConfig->emergencyTime, LifeguardNumTextAreaEventCb);
 
     //Add elements to tile
     lv_tileview_add_element( lifeguardSetupTile, lifeGuardNumber_obj);
     lv_tileview_add_element( lifeguardSetupTile, lifeGuardEmergencyTime_obj);
-}
-
-lv_obj_t * CreateObject(lv_obj_t * tileObj, lv_obj_t * alignObj)
-{
-    lv_obj_t * obj = lv_obj_create( tileObj, NULL);
-    lv_obj_set_size(obj, lv_disp_get_hor_res( NULL ), 30);
-    lv_obj_add_style(obj, LV_OBJ_PART_MAIN, SETUP_STYLE  );
-    lv_obj_align(obj, alignObj, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0 );
-    return obj;
-}
-
-void CreateLabel(lv_obj_t * baseObj, char name[])
-{
-    lv_obj_t * label = lv_label_create( baseObj, NULL );
-    lv_obj_add_style(label, LV_OBJ_PART_MAIN, SETUP_STYLE);
-    lv_label_set_text(label, name);
-    lv_obj_align(label, baseObj, LV_ALIGN_IN_LEFT_MID, 0, 0 );
-}
-
-lv_obj_t * CreateNumTextarea(lv_obj_t * baseObj, char value[])
-{
-    lv_obj_t * textfield = lv_textarea_create( baseObj, NULL);
-    lv_textarea_set_text(textfield, value);
-    lv_textarea_set_pwd_mode(textfield, false);
-    lv_textarea_set_one_line(textfield, true);
-    lv_obj_set_width( textfield, lv_disp_get_hor_res( NULL ) / 4 * 3  - 5 );
-    lv_obj_align( textfield, baseObj, LV_ALIGN_IN_RIGHT_MID, -5, 0 );
-    lv_obj_set_event_cb( textfield, LifeguardNumTextAreaEventCb);
-    return textfield;
-}
-
-lv_obj_t * CreateTextarea(lv_obj_t * baseObj, char value[])
-{
-    lv_obj_t * textfield = lv_textarea_create( baseObj, NULL);
-    lv_textarea_set_text(textfield, value);
-    lv_textarea_set_pwd_mode(textfield, false);
-    lv_textarea_set_one_line(textfield, true);
-    lv_obj_set_width( textfield, lv_disp_get_hor_res( NULL ) / 4 * 3  - 5 );
-    lv_obj_align( textfield, baseObj, LV_ALIGN_IN_RIGHT_MID, -5, 0 );
-    lv_obj_set_event_cb( textfield, LifeguardTextAreaEventCb);
-    return textfield;
 }
 
 /*
@@ -133,6 +95,12 @@ static void LifeguardTextAreaEventCb( lv_obj_t * obj, lv_event_t event)
     }
 }
 
+/* 
+    /brief
+    *
+    * Function to activate keyboard from number text area
+    * 
+*/
 static void LifeguardNumTextAreaEventCb( lv_obj_t * obj, lv_event_t event ) {
     switch( event )
     {

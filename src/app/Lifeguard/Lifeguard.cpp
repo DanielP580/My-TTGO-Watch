@@ -32,7 +32,12 @@ uint32_t lifeguardSetupTile_num;
 //callback function
 static void EnterLifeguardAppEventCb(lv_obj_t * obj, lv_event_t event);
 
-//Initialize routine for app
+/*
+    /brief
+    *
+    * Function to Setup app
+    *
+*/
 void LifeguardSetup(void) 
 {
     lifeguardConfig.load();
