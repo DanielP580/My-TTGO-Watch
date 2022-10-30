@@ -26,13 +26,15 @@ lv_style_t lifeguardMainCountdown_style;
 
 lv_task_t * lifeguardCountDown_task;
 
-long countDown_ms = 0;
+long countDown_s = 0;
 static time_t prevTime;
 
-static void EnterLifeguardSetupEventCb( lv_obj_t * obj, lv_event_t event);
-static void EnterLifeguardBMAEventCb( lv_obj_t * obj, lv_event_t event );
-static void StartLifeguardCountdown( lv_obj_t * obj, lv_event_t event );
-static void StopLifeguardCountdown( lv_obj_t * obj, lv_event_t event );
+static int brightness;
+
+static void EnterLifeguardSetupEventCb(lv_obj_t * obj, lv_event_t event);
+static void EnterLifeguardBMAEventCb(lv_obj_t * obj, lv_event_t event);
+static void StopLifeguardCountdown(lv_obj_t * obj, lv_event_t event);
+static void StartLifeguardCountdown(lv_obj_t * obj, lv_event_t event);
 static void UpdateLifeguardCountDown();
 void LifeguardCountDownTask(lv_task_t * task);
 static void ShowCountdown();
@@ -104,12 +106,20 @@ static void StartLifeguardCountdown( lv_obj_t * obj, lv_event_t event )
 {
     switch( event ) {
         case( LV_EVENT_CLICKED ):
-            powermgm_set_event( POWERMGM_WAKEUP_REQUEST );
-            ResetLifeguardCountDown();
-            ShowCountdown();
-            lifeguardCountDown_task = lv_task_create(LifeguardCountDownTask, 1000, LV_TASK_PRIO_MID, NULL);
+            StartCountdown();
             break;
     }
+}
+
+void StartCountdown()
+{
+    brightness = display_get_brightness();
+    powermgm_set_event( POWERMGM_WAKEUP_REQUEST );
+    ResetLifeguardCountDown();
+    ShowCountdown();
+    lv_disp_trig_activity(NULL);
+    display_set_brightness(DISPLAY_MAX_BRIGHTNESS);
+    lifeguardCountDown_task = lv_task_create(LifeguardCountDownTask, 1000, LV_TASK_PRIO_HIGHEST, NULL);
 }
 
 static void StopLifeguardCountdown( lv_obj_t * obj, lv_event_t event ) 
@@ -117,6 +127,7 @@ static void StopLifeguardCountdown( lv_obj_t * obj, lv_event_t event )
     switch( event ) {
         case( LV_EVENT_CLICKED ):
             StopCountdown();
+            display_set_brightness(brightness);
             break;
     }
 }
@@ -136,13 +147,14 @@ static void CloseCountdown()
 static void StopCountdown() 
 {
     CloseCountdown();
+    ResetLifeguardBMAFallStatus();
     lv_task_del(lifeguardCountDown_task);
 }
 
 static void ResetLifeguardCountDown()
 {
     lifeguardConfig_t * lifeguardConfig = GetLifeguardConfig();
-    countDown_ms = atoi(lifeguardConfig->emergencyTime) * 1000;
+    countDown_s = atoi(lifeguardConfig->emergencyTime);
 
     UpdateLifeguardCountDown();
 }
@@ -152,7 +164,7 @@ static void UpdateLifeguardCountDown()
     char countdownNum[5];
 
     //int countdownMin = (countDown_ms / 1000) / 60;
-    int countdownSec = (countDown_ms / 1000) % 60;
+    int countdownSec = countDown_s % 60;
 
     sprintf(countdownNum, "%d", countdownSec);
 
@@ -164,14 +176,14 @@ void LifeguardCountDownTask(lv_task_t * task)
 {
     time_t currentTime; 
     time(&currentTime);
-    countDown_ms -= difftime(currentTime, prevTime) * 1000;
+    countDown_s -= difftime(currentTime, prevTime);
     prevTime = currentTime;
 
     UpdateLifeguardCountDown();
     motor_vibe( 10, true );
-    sound_play_progmem_wav(piep_wav, piep_wav_len);
+    //sound_play_progmem_wav(piep_wav, piep_wav_len);
 
-    if (countDown_ms < 0)
+    if (countDown_s <= 0)
     {
         StopCountdown();
     }

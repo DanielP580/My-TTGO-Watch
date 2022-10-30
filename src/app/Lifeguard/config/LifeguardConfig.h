@@ -10,6 +10,7 @@
             lifeguardConfig_t();
             char number[10];
             char emergencyTime[10];
+            int32_t sensCalib = 1000;
 
         protected:
             virtual bool onLoad(JsonDocument& document);

@@ -11,6 +11,7 @@ lv_obj_t * lifeguardSetupTile = NULL;
 //Textfields definiton
 lv_obj_t * lifeguardNumber_textfield = NULL;
 lv_obj_t * lifeguardEmergencyTime_textfield = NULL;
+lv_obj_t * lifeguardSensCalib_textfield = NULL;
 
 //Function prototypes
 static void LifeguardTextAreaEventCb( lv_obj_t * obj, lv_event_t event);
@@ -52,9 +53,18 @@ void LifeguardSetupTileSetup(uint32_t tileNum)
     CreateListLabel(lifeGuardEmergencyTime_obj, emergencyTimeName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
     lifeguardEmergencyTime_textfield = CreateListTextarea(lifeGuardEmergencyTime_obj, lifeguardConfig->emergencyTime, LifeguardNumTextAreaEventCb);
 
+    //EmergencyTime line definitions
+    lv_obj_t * lifeGuardSensCalib_obj = CreateListObject( lifeguardSetupTile, lifeGuardEmergencyTime_obj);
+    char emergencySensCalibName[] = "Sens\ncalib";
+    CreateListLabel(lifeGuardSensCalib_obj, emergencySensCalibName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
+    char buffer[10]; 
+    sprintf(buffer, "%d",lifeguardConfig->sensCalib);
+    lifeguardSensCalib_textfield = CreateListTextarea(lifeGuardSensCalib_obj, buffer, LifeguardNumTextAreaEventCb);
+
     //Add elements to tile
     lv_tileview_add_element( lifeguardSetupTile, lifeGuardNumber_obj);
     lv_tileview_add_element( lifeguardSetupTile, lifeGuardEmergencyTime_obj);
+    lv_tileview_add_element( lifeguardSetupTile, lifeGuardSensCalib_obj);
 }
 
 /*
@@ -69,6 +79,7 @@ static void LifeguardSetupHibernateCallback ( void )
     lifeguardConfig_t *lifeguardConfig = GetLifeguardConfig();
     strncpy( lifeguardConfig->number, lv_textarea_get_text( lifeguardNumber_textfield), sizeof(lifeguardConfig->number));
     strncpy( lifeguardConfig->emergencyTime, lv_textarea_get_text( lifeguardEmergencyTime_textfield), sizeof(lifeguardConfig->emergencyTime));
+    lifeguardConfig->sensCalib = atoi(lv_textarea_get_text(lifeguardSensCalib_textfield));
     lifeguardConfig->save();
 }
 
