@@ -3,4 +3,5 @@
 
     void LifeguardBMATileSetup(uint32_t tileNum);
 
+
 #endif // _LIFEGUARD_BMA_SETUP_H

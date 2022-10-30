@@ -8,8 +8,8 @@
     class lifeguardConfig_t : public BaseJsonConfig {
         public:
             lifeguardConfig_t();
-            char number[9];
-            char emergencyTime[3];
+            char number[10];
+            char emergencyTime[10];
 
         protected:
             virtual bool onLoad(JsonDocument& document);

@@ -40,16 +40,16 @@ lv_obj_t * CreateListTextarea(lv_obj_t * baseObj, char value[], lv_event_cb_t ev
     @brief
     *
     * Create label
-    * Params: Object to base on, text char
-    * Premade config
+    * Params: Object to base on, text char, alignment, style object
     * 
 */
-void CreateListLabel(lv_obj_t * baseObj, char name[])
+lv_obj_t * CreateListLabel(lv_obj_t * baseObj, char name[], lv_align_t align, lv_style_t * style)
 {
     lv_obj_t * label = lv_label_create( baseObj, NULL );
-    lv_obj_add_style(label, LV_OBJ_PART_MAIN, SETUP_STYLE);
+    lv_obj_add_style(label, LV_OBJ_PART_MAIN, style);
     lv_label_set_text(label, name);
-    lv_obj_align(label, baseObj, LV_ALIGN_IN_LEFT_MID, 0, 0 );
+    lv_obj_align(label, baseObj, align, 0, 0 );
+    return label;
 }
 
 
@@ -68,21 +68,4 @@ lv_obj_t * CreateCenterObject(lv_obj_t * tileObj, lv_obj_t * alignObj, lv_style_
     lv_obj_add_style(obj, LV_OBJ_PART_MAIN, style);
     lv_obj_align(obj, alignObj, LV_ALIGN_CENTER, 0, 0);
     return obj;
-}
-
-/*
-    @brief
-    *
-    * Create label
-    * Params: Object to base on, text char
-    * Premade config
-    * 
-*/
-lv_obj_t * CreateCenterLabel(lv_obj_t * baseObj, char name[], lv_style_t * style)
-{
-    lv_obj_t * label = lv_label_create( baseObj, NULL );
-    lv_obj_add_style(label, LV_OBJ_PART_MAIN, style);
-    lv_label_set_text(label, name);
-    lv_obj_align(label, baseObj, LV_ALIGN_CENTER, 0, 0);
-    return label;
 }

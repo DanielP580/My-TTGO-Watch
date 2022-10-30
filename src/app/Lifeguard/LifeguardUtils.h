@@ -16,11 +16,14 @@
     #include "gui/mainbar/main_tile/main_tile.h"
     #include "gui/keyboard.h"
     #include "utils/json_psram_allocator.h"
+    #include "hardware/powermgm.h"
+    #include "hardware/sound.h"
+    #include "gui/sound/piep.h"
+    #include "drive/bma423/bma.h"
 
     lv_obj_t * CreateListObject(lv_obj_t * tileObj, lv_obj_t * alignObj);
     lv_obj_t * CreateListTextarea(lv_obj_t * baseObj, char value[], lv_event_cb_t event);
-    void CreateListLabel(lv_obj_t * baseObj, char name[]);
+    lv_obj_t * CreateListLabel(lv_obj_t * baseObj, char name[], lv_align_t align, lv_style_t * style);
     lv_obj_t * CreateCenterObject(lv_obj_t * tileObj, lv_obj_t * alignObj, lv_style_t * style);
-    lv_obj_t * CreateCenterLabel(lv_obj_t * baseObj, char name[], lv_style_t * style);
 
 #endif //  _LIFEGUARD_UTILS_H

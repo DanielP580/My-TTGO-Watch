@@ -3,12 +3,16 @@
 
 #include "Lifeguard.h"
 #include "LifeguardMain.h"
+#include "LifeguardBMA.h"
 #include "LifeguardUtils.h"
 
 #include "utils/json_psram_allocator.h"
 #include "utils/alloc.h"
 
 lv_obj_t * lifeguardMainTile = NULL;
+lv_obj_t * lifeguardExit_btn;
+lv_obj_t * lifeguardSetup_btn;
+lv_obj_t * lifeguardBMA_btn;
 lv_obj_t * lifeguardCountdown_label;
 lv_obj_t * lifeguardCountdownStart_btn;
 lv_obj_t * lifeguardCountdownStop_btn;
@@ -44,8 +48,6 @@ static void ResetLifeguardCountDown();
 */
 void LifeguardMainTileSetup( uint32_t tileNum)
 {
-    lifeguardConfig_t * lifeguardConfig = GetLifeguardConfig();
-
     lifeguardMainTile = mainbar_get_tile_obj( tileNum);
 
     lv_style_copy( &lifeguardMainCountdown_style, APP_STYLE );
@@ -57,22 +59,19 @@ void LifeguardMainTileSetup( uint32_t tileNum)
     lv_obj_add_style( lifeguardMainTile, LV_OBJ_PART_MAIN, &lifeguardMainStyle );
 
     //Create buttons
-    lv_obj_t * exitButton = wf_add_exit_button( lifeguardMainTile, SYSTEM_ICON_STYLE);
-    lv_obj_align(exitButton, lifeguardMainTile, LV_ALIGN_IN_BOTTOM_LEFT, 10, -10);
+    lv_obj_t * lifeguardExit_btn = wf_add_exit_button( lifeguardMainTile, SYSTEM_ICON_STYLE);
+    lv_obj_align(lifeguardExit_btn, lifeguardMainTile, LV_ALIGN_IN_BOTTOM_LEFT, 10, -10);
 
-    lv_obj_t * setupButton = wf_add_setup_button( lifeguardMainTile, EnterLifeguardSetupEventCb, SYSTEM_ICON_STYLE);
-    lv_obj_align(setupButton, lifeguardMainTile, LV_ALIGN_IN_BOTTOM_RIGHT, -10, -10);
+    lv_obj_t * lifeguardSetup_btn = wf_add_setup_button( lifeguardMainTile, EnterLifeguardSetupEventCb, SYSTEM_ICON_STYLE);
+    lv_obj_align(lifeguardSetup_btn, lifeguardMainTile, LV_ALIGN_IN_BOTTOM_RIGHT, -10, -10);
 
-    lv_obj_t * BMAButton = wf_add_setup_button( lifeguardMainTile, EnterLifeguardBMAEventCb, SYSTEM_ICON_STYLE);
-    lv_obj_align(BMAButton, lifeguardMainTile, LV_ALIGN_IN_TOP_LEFT, 10, 10);
-
-    //Add header to top of settings 
-    lv_obj_t * header = wf_add_settings_header( lifeguardMainTile, "lifeguard");
-    lv_obj_align(header, lifeguardMainTile, LV_ALIGN_IN_TOP_MID, THEME_ICON_PADDING, THEME_ICON_PADDING);
+    lv_obj_t * lifeguardBMA_btn = wf_add_setup_button( lifeguardMainTile, EnterLifeguardBMAEventCb, SYSTEM_ICON_STYLE);
+    lv_obj_align(lifeguardBMA_btn, lifeguardMainTile, LV_ALIGN_IN_TOP_LEFT, 10, 10);
 
     //Countdown definitions
     lv_obj_t * lifeguardCountdown_obj = CreateCenterObject( lifeguardMainTile, NULL, SETUP_STYLE);
-    lifeguardCountdown_label = CreateCenterLabel(lifeguardCountdown_obj, lifeguardConfig->emergencyTime, &lifeguardMainCountdown_style);
+    char defaultText[] = "00";
+    lifeguardCountdown_label = CreateListLabel(lifeguardCountdown_obj, defaultText, LV_ALIGN_CENTER, &lifeguardMainCountdown_style);
 
     lifeguardCountdownStart_btn = wf_add_play_button(lifeguardMainTile, StartLifeguardCountdown, SYSTEM_ICON_STYLE);
     lv_obj_align(lifeguardCountdownStart_btn, lifeguardMainTile, LV_ALIGN_IN_RIGHT_MID, 0, 0);
@@ -105,10 +104,10 @@ static void StartLifeguardCountdown( lv_obj_t * obj, lv_event_t event )
 {
     switch( event ) {
         case( LV_EVENT_CLICKED ):
+            powermgm_set_event( POWERMGM_WAKEUP_REQUEST );
             ResetLifeguardCountDown();
             ShowCountdown();
             lifeguardCountDown_task = lv_task_create(LifeguardCountDownTask, 1000, LV_TASK_PRIO_MID, NULL);
-
             break;
     }
 }
@@ -152,10 +151,10 @@ static void UpdateLifeguardCountDown()
 {
     char countdownNum[5];
 
-    int countdownMin = (countDown_ms / 1000) / 60;
+    //int countdownMin = (countDown_ms / 1000) / 60;
     int countdownSec = (countDown_ms / 1000) % 60;
 
-    sprintf(countdownNum, "%02d:%02d", countdownMin, countdownSec);
+    sprintf(countdownNum, "%d", countdownSec);
 
     lv_label_set_text(lifeguardCountdown_label, countdownNum);
     lv_obj_align(lifeguardCountdown_label, NULL, LV_ALIGN_CENTER, 0, 0);
@@ -170,6 +169,7 @@ void LifeguardCountDownTask(lv_task_t * task)
 
     UpdateLifeguardCountDown();
     motor_vibe( 10, true );
+    sound_play_progmem_wav(piep_wav, piep_wav_len);
 
     if (countDown_ms < 0)
     {

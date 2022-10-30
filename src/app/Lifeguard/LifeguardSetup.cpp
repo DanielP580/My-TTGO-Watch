@@ -43,13 +43,13 @@ void LifeguardSetupTileSetup(uint32_t tileNum)
     //Number line definitions
     lv_obj_t * lifeGuardNumber_obj = CreateListObject( lifeguardSetupTile, header);
     char numberName[] = "Number";
-    CreateListLabel(lifeGuardNumber_obj, numberName);
+    CreateListLabel(lifeGuardNumber_obj, numberName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
     lifeguardNumber_textfield = CreateListTextarea(lifeGuardNumber_obj, lifeguardConfig->number, LifeguardNumTextAreaEventCb);
 
     //EmergencyTime line definitions
     lv_obj_t * lifeGuardEmergencyTime_obj = CreateListObject( lifeguardSetupTile, lifeGuardNumber_obj);
     char emergencyTimeName[] = "Emergency\ntime";
-    CreateListLabel(lifeGuardEmergencyTime_obj, emergencyTimeName);
+    CreateListLabel(lifeGuardEmergencyTime_obj, emergencyTimeName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
     lifeguardEmergencyTime_textfield = CreateListTextarea(lifeGuardEmergencyTime_obj, lifeguardConfig->emergencyTime, LifeguardNumTextAreaEventCb);
 
     //Add elements to tile
