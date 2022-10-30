@@ -83,37 +83,37 @@ static void SetupLifeguardBMA()
 static void UpdateLifeguardBMAStatus()
 {
     TTGOClass *ttgo = TTGOClass::getWatch();
-    ttgo->bma->getAccel(acceleration);
+    if (true == ttgo->bma->getAccel(acceleration))
+    {
+        X_accel = int(acceleration.x);
+        Y_accel = int(acceleration.y);
+        Z_accel = int(acceleration.z);
+
+        char dir_accel[10];
+        //X
+        sprintf(dir_accel, "%d" , X_accel);
+
+        lv_label_set_text(lifeguardX_label, dir_accel);
+        lv_obj_align(lifeguardX_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
+
+        //Y
+        sprintf(dir_accel, "%d", Y_accel);
+
+        lv_label_set_text(lifeguardY_label, dir_accel);
+        lv_obj_align(lifeguardY_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
+
+        //Z
+        sprintf(dir_accel, "%d", Z_accel);
+
+        lv_label_set_text(lifeguardZ_label, dir_accel);
+        lv_obj_align(lifeguardZ_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
+    }
  
-    X_accel = int(acceleration.x);
-    Y_accel = int(acceleration.y);
-    Z_accel = int(acceleration.z);
-
-    char dir_accel[10];
-    //X
-    sprintf(dir_accel, "%d" , X_accel);
-
-    lv_label_set_text(lifeguardX_label, dir_accel);
-    lv_obj_align(lifeguardX_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
-
-    //Y
-    sprintf(dir_accel, "%d", Y_accel);
-
-    lv_label_set_text(lifeguardY_label, dir_accel);
-    lv_obj_align(lifeguardY_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
-
-    //Z
-    sprintf(dir_accel, "%d", Z_accel);
-
-    lv_label_set_text(lifeguardZ_label, dir_accel);
-    lv_obj_align(lifeguardZ_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
-
     //activity
     sprintf(activity, "%s", ttgo->bma->getActivity());
 
     lv_label_set_text(lifeguardStatus_label, activity);
     lv_obj_align(lifeguardStatus_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
-
 }
 
 void LifeguardBMATask(lv_task_t * task)
