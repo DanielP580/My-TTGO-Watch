@@ -41,16 +41,16 @@ void LifeguardSetupTileSetup(uint32_t tileNum)
     lv_obj_align(header, lifeguardSetupTile, LV_ALIGN_IN_TOP_MID, THEME_ICON_PADDING, THEME_ICON_PADDING);
 
     //Number line definitions
-    lv_obj_t * lifeGuardNumber_obj = CreateObject( lifeguardSetupTile, header);
+    lv_obj_t * lifeGuardNumber_obj = CreateListObject( lifeguardSetupTile, header);
     char numberName[] = "Number";
-    CreateLabel(lifeGuardNumber_obj, numberName);
-    lifeguardNumber_textfield = CreateTextarea(lifeGuardNumber_obj, lifeguardConfig->number, LifeguardNumTextAreaEventCb);
+    CreateListLabel(lifeGuardNumber_obj, numberName);
+    lifeguardNumber_textfield = CreateListTextarea(lifeGuardNumber_obj, lifeguardConfig->number, LifeguardNumTextAreaEventCb);
 
     //EmergencyTime line definitions
-    lv_obj_t * lifeGuardEmergencyTime_obj = CreateObject( lifeguardSetupTile, lifeGuardNumber_obj);
+    lv_obj_t * lifeGuardEmergencyTime_obj = CreateListObject( lifeguardSetupTile, lifeGuardNumber_obj);
     char emergencyTimeName[] = "Emergency\ntime";
-    CreateLabel(lifeGuardEmergencyTime_obj, emergencyTimeName);
-    lifeguardEmergencyTime_textfield = CreateTextarea(lifeGuardEmergencyTime_obj, lifeguardConfig->emergencyTime, LifeguardNumTextAreaEventCb);
+    CreateListLabel(lifeGuardEmergencyTime_obj, emergencyTimeName);
+    lifeguardEmergencyTime_textfield = CreateListTextarea(lifeGuardEmergencyTime_obj, lifeguardConfig->emergencyTime, LifeguardNumTextAreaEventCb);
 
     //Add elements to tile
     lv_tileview_add_element( lifeguardSetupTile, lifeGuardNumber_obj);

@@ -23,17 +23,17 @@ void LifeguardBMATileSetup(uint32_t tileNum)
     lv_obj_align(header, lifeguardBMATile, LV_ALIGN_IN_TOP_MID, THEME_ICON_PADDING, THEME_ICON_PADDING);
 
     //X-axis definitions
-    lv_obj_t * lifeGuardBMA_Xobj = CreateObject( lifeguardBMATile, header);
+    lv_obj_t * lifeGuardBMA_Xobj = CreateListObject( lifeguardBMATile, header);
     char xName[] = "X";
-    CreateLabel(lifeGuardBMA_Xobj, xName);
+    CreateListLabel(lifeGuardBMA_Xobj, xName);
 
     //Y-axis definitions
-    lv_obj_t * lifeGuardBMA_Yobj = CreateObject( lifeguardBMATile, lifeGuardBMA_Xobj);
+    lv_obj_t * lifeGuardBMA_Yobj = CreateListObject( lifeguardBMATile, lifeGuardBMA_Xobj);
     char yName[] = "Y";
-    CreateLabel(lifeGuardBMA_Yobj, yName);
+    CreateListLabel(lifeGuardBMA_Yobj, yName);
 
     //Z-axis definitions
-    lv_obj_t * lifeGuardBMA_Zobj = CreateObject( lifeguardBMATile, lifeGuardBMA_Yobj);
+    lv_obj_t * lifeGuardBMA_Zobj = CreateListObject( lifeguardBMATile, lifeGuardBMA_Yobj);
     char zName[] = "Z";
-    CreateLabel(lifeGuardBMA_Zobj, zName);
+    CreateListLabel(lifeGuardBMA_Zobj, zName);
 }

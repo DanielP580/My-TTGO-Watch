@@ -17,8 +17,10 @@
     #include "gui/keyboard.h"
     #include "utils/json_psram_allocator.h"
 
-    lv_obj_t * CreateObject(lv_obj_t * tileObj, lv_obj_t * alignObj);
-    lv_obj_t * CreateTextarea(lv_obj_t * baseObj, char value[], lv_event_cb_t event);
-    void CreateLabel(lv_obj_t * baseObj, char name[]);
+    lv_obj_t * CreateListObject(lv_obj_t * tileObj, lv_obj_t * alignObj);
+    lv_obj_t * CreateListTextarea(lv_obj_t * baseObj, char value[], lv_event_cb_t event);
+    void CreateListLabel(lv_obj_t * baseObj, char name[]);
+    lv_obj_t * CreateCenterObject(lv_obj_t * tileObj, lv_obj_t * alignObj, lv_style_t * style);
+    lv_obj_t * CreateCenterLabel(lv_obj_t * baseObj, char name[], lv_style_t * style);
 
 #endif //  _LIFEGUARD_UTILS_H
