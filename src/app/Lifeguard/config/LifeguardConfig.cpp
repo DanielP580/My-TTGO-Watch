@@ -13,7 +13,7 @@ bool lifeguardConfig_t::onSave(JsonDocument& doc){
 bool lifeguardConfig_t::onLoad(JsonDocument& doc){
     strncpy( number, doc["lifeguard"]["number"] | "", sizeof(number));
     strncpy( emergencyTime, doc["lifeguard"]["number"] | "", sizeof(emergencyTime));
-    sensCalib = doc["lifeguard"]["sensCalib"] | 50;
+    sensCalib = doc["lifeguard"]["sensCalib"] | 1500;
 
     return true;
 }
@@ -21,7 +21,7 @@ bool lifeguardConfig_t::onLoad(JsonDocument& doc){
 bool lifeguardConfig_t::onDefault( void ){
     strncpy( number, "", sizeof(number));
     strncpy( emergencyTime, "", sizeof(emergencyTime));
-    sensCalib = 50;
+    sensCalib = 1500;
 
     return true;
 }

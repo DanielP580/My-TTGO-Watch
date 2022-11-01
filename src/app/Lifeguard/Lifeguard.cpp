@@ -7,6 +7,7 @@
 #include "LifeguardMain.h"
 #include "LifeguardBMA.h"
 #include "LifeguardUtils.h"
+#include "LifeguardCountdown.h"
 
 //App config
 lifeguardConfig_t lifeguardConfig;
@@ -23,7 +24,7 @@ uint32_t lifeguardSetupTile_num;
 uint32_t lifeguardBMATile_num;
 
 //callback function
-static void EnterLifeguardAppEventCb(lv_obj_t * obj, lv_event_t event);
+static void EnterLifeguardEventCb(lv_obj_t * obj, lv_event_t event);
 
 /*
     /brief
@@ -35,15 +36,16 @@ void LifeguardSetup(void)
 {
     lifeguardConfig.load();
 
-    lifeguardMainTile_num = mainbar_add_app_tile(1, 1, "lifeguardApp");
-    lifeguardSetupTile_num = mainbar_add_app_tile(1, 2, "lifeguardApp");
-    lifeguardBMATile_num = mainbar_add_app_tile(1, 3, "lifeguardApp");
+    lifeguardMainTile_num = mainbar_add_app_tile(1, 1, "lifeguard");
+    lifeguardSetupTile_num = mainbar_add_app_tile(1, 1, "lifeguard");
+    lifeguardBMATile_num = mainbar_add_app_tile(1, 1, "lifeguard");
 
-    lifeguard_icon = app_register("lifeguard\nApp", &Lifeguard_64px, EnterLifeguardAppEventCb);
+    lifeguard_icon = app_register("lifeguard", &Lifeguard_64px, EnterLifeguardEventCb);
 
     LifeguardMainTileSetup(lifeguardMainTile_num);
     LifeguardSetupTileSetup(lifeguardSetupTile_num);
     LifeguardBMATileSetup(lifeguardBMATile_num);
+    LifeguardCountdownTileSetup();
 }
 
 //Return number of lifeguardApp tile
@@ -79,7 +81,7 @@ lifeguardConfig_t * GetLifeguardConfig(void)
     /brief
     The idea is to create a button to jump into new tile
 */
-static void EnterLifeguardAppEventCb(lv_obj_t * obj, lv_event_t event)
+static void EnterLifeguardEventCb(lv_obj_t * obj, lv_event_t event)
 {
     switch(event)
     {
