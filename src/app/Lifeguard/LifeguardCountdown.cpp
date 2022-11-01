@@ -181,6 +181,7 @@ void LifeguardCountDownTask(lv_task_t * task)
 
     if (countDown_s <= 0)
     {
+        blectl_send_msg( (char*)"\r\nHELP\r\n");
         StopCountdown();
     }
 }

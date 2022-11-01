@@ -93,6 +93,14 @@ void LifeguardBMATileSetup(uint32_t tileNum)
 
     SetupLifeguardBMA();
     CreateBMATask();
+    
+    TTGOClass *ttgo = TTGOClass::getWatch();
+    if (true == ttgo->bma->getAccel(acceleration))
+    {
+        prevX_accel = int(acceleration.x);
+        prevY_accel = int(acceleration.y);
+        prevZ_accel = int(acceleration.z);
+    }
 }
 
 void CreateBMATask()

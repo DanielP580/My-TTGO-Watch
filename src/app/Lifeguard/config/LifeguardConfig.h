@@ -9,8 +9,8 @@
         public:
             lifeguardConfig_t();
             char number[10];
-            int32_t emergencyTime;
-            int32_t sensCalib;
+            int32_t emergencyTime = 10;
+            int32_t sensCalib = 1500;
 
         protected:
             virtual bool onLoad(JsonDocument& document);
