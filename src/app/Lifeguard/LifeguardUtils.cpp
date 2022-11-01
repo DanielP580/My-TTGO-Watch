@@ -90,8 +90,8 @@ lv_obj_t * CreateObject(lv_obj_t * tileObj, lv_obj_t * alignObj, lv_align_t alig
 lv_obj_t * CreateSlider(lv_obj_t * tileObj, lv_align_t align, int16_t min, int16_t max)
 {
     lv_obj_t * slider = lv_slider_create(tileObj, NULL);
-    lv_obj_set_size(slider, lv_disp_get_hor_res(NULL) / 2, 20);
-    lv_obj_align(slider, tileObj, align, 0, 0);
+    lv_obj_set_size(slider, lv_disp_get_hor_res(NULL) / 2, 40);
+    lv_obj_align(slider, tileObj, align, 0, -40);
     lv_slider_set_range(slider, min, max);
     //lv_obj_add_protect(slider, LV_PROTECT_CLICK_FOCUS);
     //lv_obj_add_style(slider, LV_SLIDER_PART_INDIC, ws_get_slider_style());

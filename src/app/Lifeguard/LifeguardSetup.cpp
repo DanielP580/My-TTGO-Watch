@@ -14,9 +14,9 @@ lv_obj_t * lifeguardEmergencyTime_textfield = NULL;
 lv_obj_t * lifeguardSensCalib_textfield = NULL;
 
 //Function prototypes
-static void LifeguardTextAreaEventCb( lv_obj_t * obj, lv_event_t event);
-static void LifeguardNumTextAreaEventCb( lv_obj_t * obj, lv_event_t event );
-static void LifeguardSetupHibernateCallback ( void );
+static void LifeguardTextAreaEventCb(lv_obj_t * obj, lv_event_t event);
+static void LifeguardNumTextAreaEventCb(lv_obj_t * obj, lv_event_t event);
+static void LifeguardSetupHibernateCallback(void);
 
 /*
     /brief
@@ -36,7 +36,7 @@ void LifeguardSetupTileSetup(uint32_t tileNum)
     lifeguardSetupTile = mainbar_get_tile_obj( tileNum);
 
     //Text objects
-
+    char buffer[100]; 
     //Add header to top of settings 
     lv_obj_t * header = wf_add_settings_header( lifeguardSetupTile, "lifeguard setup");
     lv_obj_align(header, lifeguardSetupTile, LV_ALIGN_IN_TOP_MID, THEME_ICON_PADDING, THEME_ICON_PADDING);
@@ -51,13 +51,14 @@ void LifeguardSetupTileSetup(uint32_t tileNum)
     lv_obj_t * lifeGuardEmergencyTime_obj = CreateListObject( lifeguardSetupTile, lifeGuardNumber_obj);
     char emergencyTimeName[] = "Emergency\ntime";
     CreateListLabel(lifeGuardEmergencyTime_obj, emergencyTimeName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
-    lifeguardEmergencyTime_textfield = CreateListTextarea(lifeGuardEmergencyTime_obj, lifeguardConfig->emergencyTime, LifeguardNumTextAreaEventCb);
+    sprintf(buffer, "%d", lifeguardConfig->emergencyTime);
+    lifeguardEmergencyTime_textfield = CreateListTextarea(lifeGuardEmergencyTime_obj, buffer, LifeguardNumTextAreaEventCb);
 
     //EmergencyTime line definitions
     lv_obj_t * lifeGuardSensCalib_obj = CreateListObject( lifeguardSetupTile, lifeGuardEmergencyTime_obj);
     char emergencySensCalibName[] = "Sens\ncalib";
     CreateListLabel(lifeGuardSensCalib_obj, emergencySensCalibName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
-    char buffer[10]; 
+    
     sprintf(buffer, "%d",lifeguardConfig->sensCalib);
     lifeguardSensCalib_textfield = CreateListTextarea(lifeGuardSensCalib_obj, buffer, LifeguardNumTextAreaEventCb);
 
@@ -73,12 +74,12 @@ void LifeguardSetupTileSetup(uint32_t tileNum)
     * Function to hide keyboard and save configs when hibernation occurs
     *
 */
-static void LifeguardSetupHibernateCallback ( void )
+static void LifeguardSetupHibernateCallback(void)
 {
     keyboard_hide();
     lifeguardConfig_t *lifeguardConfig = GetLifeguardConfig();
     strncpy( lifeguardConfig->number, lv_textarea_get_text( lifeguardNumber_textfield), sizeof(lifeguardConfig->number));
-    strncpy( lifeguardConfig->emergencyTime, lv_textarea_get_text( lifeguardEmergencyTime_textfield), sizeof(lifeguardConfig->emergencyTime));
+    lifeguardConfig->emergencyTime = atoi(lv_textarea_get_text( lifeguardEmergencyTime_textfield));
     lifeguardConfig->sensCalib = atoi(lv_textarea_get_text(lifeguardSensCalib_textfield));
     lifeguardConfig->save();
 }
@@ -89,12 +90,13 @@ static void LifeguardSetupHibernateCallback ( void )
     * Function to activate keyboard from text area
     * 
 */
-
-static void LifeguardTextAreaEventCb( lv_obj_t * obj, lv_event_t event)
+static void LifeguardTextAreaEventCb(lv_obj_t * obj, lv_event_t event)
 {
-    switch( event )
+    switch(event)
     {
-        case ( LV_EVENT_CLICKED ): keyboard_set_textarea(obj);
+        case (LV_EVENT_CLICKED): 
+            keyboard_set_textarea(obj);
+            break;
     }
 }
 
@@ -105,9 +107,11 @@ static void LifeguardTextAreaEventCb( lv_obj_t * obj, lv_event_t event)
     * Function to activate keyboard from number text area
     * 
 */
-static void LifeguardNumTextAreaEventCb( lv_obj_t * obj, lv_event_t event ) {
-    switch( event )
+static void LifeguardNumTextAreaEventCb(lv_obj_t * obj, lv_event_t event) {
+    switch(event)
     {
-        case ( LV_EVENT_CLICKED ): num_keyboard_set_textarea(obj);
+        case (LV_EVENT_CLICKED): 
+            num_keyboard_set_textarea(obj);
+            break;
     }
 }

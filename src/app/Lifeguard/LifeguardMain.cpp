@@ -64,16 +64,18 @@ static void StartLifeguardCountdown(lv_obj_t * obj, lv_event_t event)
 static void EnterLifeguardSetupEventCb(lv_obj_t * obj, lv_event_t event) 
 {
     switch( event ) {
-        case( LV_EVENT_CLICKED ):       mainbar_jump_to_tilenumber(GetLifeguard_SetupTileNum(), LV_ANIM_OFF, true );
-                                        break;
+        case( LV_EVENT_CLICKED ):       
+            mainbar_jump_to_tilenumber(GetLifeguard_SetupTileNum(), LV_ANIM_OFF, true );
+            break;
     }
 }
 
 static void EnterLifeguardBMAEventCb(lv_obj_t * obj, lv_event_t event) 
 {
     switch( event ) {
-        case( LV_EVENT_CLICKED ):       mainbar_jump_to_tilenumber(GetLifeguard_BMATileNum(), LV_ANIM_OFF, true );
-                                        break;
+        case( LV_EVENT_CLICKED ):       
+            mainbar_jump_to_tilenumber(GetLifeguard_BMATileNum(), LV_ANIM_OFF, true );
+            break;
     }
 }
 

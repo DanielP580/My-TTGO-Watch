@@ -9,7 +9,7 @@
 #include "utils/json_psram_allocator.h"
 #include "utils/alloc.h"
 
-#define TURN_ON_COUNTDOWN 1
+#define TURN_ON_COUNTDOWN 10
 #define TURN_OFF_COUNTDOWN 0
 
 static uint32_t lifeguardCountdownTile_num;
@@ -57,18 +57,18 @@ void LifeguardCountdownTileSetup(void)
     lifeguardCountdown_label = CreateListLabel(lifeguardCountdown_obj, defaultText, LV_ALIGN_CENTER, &lifeguardMainCountdown_style);
 
     lifeguardCountdownStop_btn = wf_add_stop_button(lifeguardCountdownTile, StopLifeguardCountdown, SYSTEM_ICON_STYLE);
-    lv_obj_align(lifeguardCountdownStop_btn, lifeguardCountdownTile, LV_ALIGN_IN_RIGHT_MID, TURN_OFF_COUNTDOWN, TURN_ON_COUNTDOWN);
+    lv_obj_align(lifeguardCountdownStop_btn, lifeguardCountdownTile, LV_ALIGN_IN_RIGHT_MID, 0, 0);
 
     lv_obj_t * lifeguardCountdownStopSlider_obj = CreateObject(lifeguardCountdownTile, NULL, LV_ALIGN_IN_BOTTOM_MID, APP_STYLE);
-    lifeguardCountdownStop_slider = CreateSlider(lifeguardCountdownStopSlider_obj, LV_ALIGN_IN_BOTTOM_MID, 0, 1);
+    lifeguardCountdownStop_slider = CreateSlider(lifeguardCountdownStopSlider_obj, LV_ALIGN_IN_BOTTOM_MID, TURN_OFF_COUNTDOWN, TURN_ON_COUNTDOWN);
     lv_obj_set_event_cb(lifeguardCountdownStop_slider, LifeguardCountdownStopSliderEventCb);
-    LifeguardCountdownResetSlider();
 
-    lv_tileview_add_element( lifeguardCountdownTile, lifeguardCountdownStopSlider_obj);
-    lv_tileview_add_element( lifeguardCountdownTile, lifeguardCountdown_obj);
+    lv_tileview_add_element(lifeguardCountdownTile, lifeguardCountdownStopSlider_obj);
+    lv_tileview_add_element(lifeguardCountdownTile, lifeguardCountdown_obj);
 
     ResetLifeguardCountDown();
     ResetLifeguardBMAFallStatus();
+    LifeguardCountdownResetSlider();
 }
 
 void LifeguardCountdownResetSlider()
@@ -80,8 +80,8 @@ void LifeguardCountdownStopSliderEventCb(lv_obj_t * obj, lv_event_t event)
 {
     switch( event )
     {
-        case ( LV_EVENT_VALUE_CHANGED ): 
-            if(0 == lv_slider_get_value(obj))
+        case (LV_EVENT_VALUE_CHANGED): 
+            if(TURN_OFF_COUNTDOWN == lv_slider_get_value(obj))
             {
                 StopCountdown();
             }
@@ -91,13 +91,18 @@ void LifeguardCountdownStopSliderEventCb(lv_obj_t * obj, lv_event_t event)
 
 void StartCountdown()
 {
-    isCountdown = true;
-    brightness = display_get_brightness();
-    lv_disp_trig_activity(NULL);
-    display_set_brightness(DISPLAY_MAX_BRIGHTNESS);
-    powermgm_set_event(POWERMGM_WAKEUP_REQUEST);
-    mainbar_jump_to_tilenumber(lifeguardCountdownTile_num, LV_ANIM_OFF, true);
-    lifeguardCountDown_task = lv_task_create(LifeguardCountDownTask, 1000, LV_TASK_PRIO_MID, NULL);
+    if (!lifeguardCountDown_task)
+    {
+        powermgm_set_event(POWERMGM_WAKEUP_REQUEST);
+        ResetLifeguardCountDown();
+        brightness = display_get_brightness();
+        mainbar_jump_to_tilenumber(lifeguardCountdownTile_num, LV_ANIM_OFF, true);
+        isCountdown = true;
+        lv_disp_trig_activity(NULL);
+        display_set_brightness(DISPLAY_MAX_BRIGHTNESS);
+        time(&prevTime);
+        lifeguardCountDown_task = lv_task_create(LifeguardCountDownTask, 1000, LV_TASK_PRIO_MID, NULL);
+    }
 }
 
 bool GetCountdownStatus()
@@ -128,19 +133,23 @@ static void CloseCountdown()
 
 static void StopCountdown() 
 {
-    lv_task_del(lifeguardCountDown_task);
-    display_set_brightness(brightness);
-    ResetLifeguardCountDown();
-    mainbar_jump_back();
-    isCountdown = false;
-    ResetLifeguardBMAFallStatus();
-    LifeguardCountdownResetSlider();
+    if(lifeguardCountDown_task)
+    {
+        lv_task_del(lifeguardCountDown_task);
+        lifeguardCountDown_task = NULL;
+        display_set_brightness(brightness);
+        ResetLifeguardCountDown();
+        isCountdown = false;
+        ResetLifeguardBMAFallStatus();
+        mainbar_jump_back();
+        LifeguardCountdownResetSlider();
+    }
 }
 
 static void ResetLifeguardCountDown()
 {
     lifeguardConfig_t * lifeguardConfig = GetLifeguardConfig();
-    countDown_s = atoi(lifeguardConfig->emergencyTime);
+    countDown_s = lifeguardConfig->emergencyTime;
 
     UpdateLifeguardCountDown();
 }
@@ -162,11 +171,12 @@ void LifeguardCountDownTask(lv_task_t * task)
 {
     time_t currentTime; 
     time(&currentTime);
-    countDown_s -= difftime(currentTime, prevTime);
+    double diffTime_s = difftime(currentTime, prevTime);
+    countDown_s = countDown_s - diffTime_s;
     prevTime = currentTime;
 
     UpdateLifeguardCountDown();
-    motor_vibe( 10, true );
+    motor_vibe(10, true);
     //sound_play_progmem_wav(piep_wav, piep_wav_len);
 
     if (countDown_s <= 0)
