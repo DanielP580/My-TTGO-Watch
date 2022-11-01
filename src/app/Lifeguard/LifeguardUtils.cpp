@@ -1,12 +1,12 @@
 #include "LifeguardUtils.h"
 
-/*
-    @brief
-    *
-    * Create object
-    * Params: Object to base on, object to base on alignment
-    * Premade config
-    *
+/**
+    * @brief Create object
+    * 
+    * @param tileObj object to base on
+    * @param alignObj object to base on alignment
+    * 
+    * @return object
 */
 lv_obj_t * CreateListObject(lv_obj_t * tileObj, lv_obj_t * alignObj)
 {
@@ -16,13 +16,15 @@ lv_obj_t * CreateListObject(lv_obj_t * tileObj, lv_obj_t * alignObj)
     lv_obj_align(obj, alignObj, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
     return obj;
 }
-/*
-    @brief
-    *
-    * Create text area
-    * Params: Object to base on, value of variable, event to base on e.g LifeguardTextAreaEventCb
-    * Premade config
+
+/**
+    * @brief Create text area
     * 
+    * @param baseObj object to base on
+    * @param value set value of text area
+    * @param event set event when typing text
+    * 
+    * @return textfield
 */
 lv_obj_t * CreateListTextarea(lv_obj_t * baseObj, char value[], lv_event_cb_t event)
 {
@@ -36,12 +38,15 @@ lv_obj_t * CreateListTextarea(lv_obj_t * baseObj, char value[], lv_event_cb_t ev
     return textfield;
 }
 
-/*
-    @brief
-    *
-    * Create label
-    * Params: Object to base on, text char, alignment, style object
+/**
+    * @brief Create label
     * 
+    * @param baseObj object to base on
+    * @param name set char name of label
+    * @param align align define
+    * @param style style object
+    * 
+    * @return label
 */
 lv_obj_t * CreateListLabel(lv_obj_t * baseObj, char name[], lv_align_t align, lv_style_t * style)
 {
@@ -53,19 +58,43 @@ lv_obj_t * CreateListLabel(lv_obj_t * baseObj, char name[], lv_align_t align, lv
 }
 
 
-/*
-    @brief
-    *
-    * Create centered object
-    * Params: Object to base on, object to base on alignment
-    * Premade config
-    *
+/**
+    * @brief Create centered object
+    * 
+    * @param tileObj object to base on
+    * @param alignObj object to base on alignment
+    * @param align align object
+    * @param style style object
+    * 
+    * @return object
 */
-lv_obj_t * CreateCenterObject(lv_obj_t * tileObj, lv_obj_t * alignObj, lv_style_t * style)
+lv_obj_t * CreateObject(lv_obj_t * tileObj, lv_obj_t * alignObj, lv_align_t align, lv_style_t * style)
 {
     lv_obj_t * obj = lv_obj_create( tileObj, NULL);
     lv_obj_set_size(obj, lv_disp_get_hor_res( NULL ), lv_disp_get_ver_res( NULL) / 2);
     lv_obj_add_style(obj, LV_OBJ_PART_MAIN, style);
-    lv_obj_align(obj, alignObj, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_align(obj, alignObj, align, 0, 0);
     return obj;
+}
+
+/**
+    * @brief Create centered object
+    * 
+    * @param tileObj object to base on
+    * @param alignObj object to base on alignment
+    * @param min minimum value of slider
+    * @param max maximum value of slider
+    * 
+    * @return slider
+*/
+lv_obj_t * CreateSlider(lv_obj_t * tileObj, lv_align_t align, int16_t min, int16_t max)
+{
+    lv_obj_t * slider = lv_slider_create(tileObj, NULL);
+    lv_obj_set_size(slider, lv_disp_get_hor_res(NULL) / 2, 20);
+    lv_obj_align(slider, tileObj, align, 0, 0);
+    lv_slider_set_range(slider, min, max);
+    //lv_obj_add_protect(slider, LV_PROTECT_CLICK_FOCUS);
+    //lv_obj_add_style(slider, LV_SLIDER_PART_INDIC, ws_get_slider_style());
+    //lv_obj_add_style(slider, LV_SLIDER_PART_KNOB, ws_get_slider_style());
+    return slider;
 }

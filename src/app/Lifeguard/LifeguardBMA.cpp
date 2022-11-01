@@ -20,6 +20,7 @@ lv_obj_t * lifeguardX_label = NULL;
 lv_obj_t * lifeguardY_label = NULL;
 lv_obj_t * lifeguardZ_label = NULL;
 lv_obj_t * lifeguardStatus_label = NULL;
+lv_obj_t * lifeguardTries_label = NULL;
 
 Accel acceleration;
 int X_accel;
@@ -29,7 +30,12 @@ int prevX_accel;
 int prevY_accel;
 int prevZ_accel;
 
-char activity[23];
+char activity_c[23];
+char tries_c[10];
+
+int pressCount = 0;
+int tries = 0;
+int maxTries = 10;
 
 bool isFall = false;
 
@@ -73,12 +79,19 @@ void LifeguardBMATileSetup(uint32_t tileNum)
     CreateListLabel(lifeGuardBMA_statusobj, statusName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
     lifeguardStatus_label = CreateListLabel(lifeGuardBMA_statusobj, defaultName, LV_ALIGN_CENTER, SETUP_STYLE);
 
+    //Trues definitions
+    lv_obj_t * lifeGuardBMA_triesobj = CreateListObject( lifeguardBMATile, lifeGuardBMA_statusobj);
+    char triesName[] = "Tries";
+    CreateListLabel(lifeGuardBMA_triesobj, triesName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
+    lifeguardTries_label = CreateListLabel(lifeGuardBMA_triesobj, defaultName, LV_ALIGN_CENTER, SETUP_STYLE);
+
     lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_Xobj);
     lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_Yobj);
     lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_Zobj);
+    lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_statusobj);
+    lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_triesobj);
 
     SetupLifeguardBMA();
-    
     CreateBMATask();
 }
 
@@ -113,16 +126,31 @@ static void UpdateLifeguardBMAStatus()
 {
     lifeguardConfig_t *lifeguardConfig = GetLifeguardConfig();
     TTGOClass *ttgo = TTGOClass::getWatch();
+
+    ttgo->bma->isDoubleClick();
+
+    /* TBD */
+    ttgo->power->readIRQ();
+    if ((true == ttgo->power->isPEKShortPressIRQ()) && !GetCountdownStatus()) {
+        pressCount += 1;
+
+        if (pressCount >= 5)
+        {
+            pressCount = 0;
+            StartCountdown();
+        }
+    }
+    /* TBD */
+
     if (true == ttgo->bma->getAccel(acceleration))
     {
         X_accel = int(acceleration.x);
         Y_accel = int(acceleration.y);
         Z_accel = int(acceleration.z);
 
-        if( !isFall && (sqrt(pow(X_accel - prevX_accel,2 ) + pow(Y_accel - prevY_accel,2 ) + pow(Z_accel - prevZ_accel,2 )) >= lifeguardConfig->sensCalib))
+        if(!isFall && (sqrt(pow(X_accel - prevX_accel, 2) + pow(Y_accel - prevY_accel, 2 ) + pow(Z_accel - prevZ_accel, 2 )) >= lifeguardConfig->sensCalib))
         {
-            KillBMATask();
-            StartCountdown();
+            isFall = true;
         }
 
         char dir_accel[10];
@@ -150,10 +178,28 @@ static void UpdateLifeguardBMAStatus()
     }
 
     //activity
-    sprintf(activity, "%s", ttgo->bma->getActivity());
+    sprintf(activity_c, "%s", ttgo->bma->getActivity());
 
-    lv_label_set_text(lifeguardStatus_label, activity);
+    lv_label_set_text(lifeguardStatus_label, activity_c);
     lv_obj_align(lifeguardStatus_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
+
+    if(isFall && !GetCountdownStatus())
+    {
+        if((0 == strncmp(activity_c,"BMA423_USER_STATIONARY", 23)) || (0 ==strncmp(activity_c,"None", 4)))
+        {
+            StartCountdown();
+        } 
+        else if(++tries >= maxTries)
+        {
+            ResetLifeguardBMAFallStatus();
+        }
+    }
+
+    //activity
+    sprintf(tries_c, "%d", tries);
+
+    lv_label_set_text(lifeguardTries_label, tries_c);
+    lv_obj_align(lifeguardTries_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
 }
 
 void LifeguardBMATask(lv_task_t * task)

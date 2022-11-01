@@ -9,11 +9,14 @@
 #include "utils/json_psram_allocator.h"
 #include "utils/alloc.h"
 
+#define TURN_ON_COUNTDOWN 1
+#define TURN_OFF_COUNTDOWN 0
+
 static uint32_t lifeguardCountdownTile_num;
 lv_obj_t * lifeguardCountdownTile = NULL;
 lv_obj_t * lifeguardCountdown_label = NULL;
-lv_obj_t * lifeguardCountdownStart_btn = NULL;
 lv_obj_t * lifeguardCountdownStop_btn = NULL;
+lv_obj_t * lifeguardCountdownStop_slider = NULL;
 
 //gui/font
 LV_FONT_DECLARE(Ubuntu_16px);
@@ -28,57 +31,78 @@ static time_t prevTime;
 
 static int brightness;
 
+bool isCountdown = false;;
+
 static void StopLifeguardCountdown(lv_obj_t * obj, lv_event_t event);
-static void StartLifeguardCountdown(lv_obj_t * obj, lv_event_t event);
 static void UpdateLifeguardCountDown();
 void LifeguardCountDownTask(lv_task_t * task);
 static void ShowCountdown();
 static void StopCountdown();
 static void CloseCountdown();
 static void ResetLifeguardCountDown();
+void LifeguardCountdownStopSliderEventCb(lv_obj_t *brightness_slider, lv_event_t event);
+void LifeguardCountdownResetSlider();
 
 void LifeguardCountdownTileSetup(void)
 {
     lifeguardCountdownTile_num = mainbar_add_app_tile(1, 1, "Countdown");
     lifeguardCountdownTile = mainbar_get_tile_obj( lifeguardCountdownTile_num);
 
-    lv_style_copy( &lifeguardMainCountdown_style, APP_STYLE );
-    lv_style_set_text_font( &lifeguardMainCountdown_style, LV_STATE_DEFAULT, &Ubuntu_72px);
+    lv_style_copy(&lifeguardMainCountdown_style, APP_STYLE );
+    lv_style_set_text_font(&lifeguardMainCountdown_style, LV_STATE_DEFAULT, &Ubuntu_72px);
 
     //Countdown definitions
-    lv_obj_t * lifeguardCountdown_obj = CreateCenterObject( lifeguardCountdownTile, NULL, SETUP_STYLE);
+    lv_obj_t * lifeguardCountdown_obj = CreateObject(lifeguardCountdownTile, NULL, LV_ALIGN_CENTER, APP_STYLE);
     char defaultText[] = "00";
     lifeguardCountdown_label = CreateListLabel(lifeguardCountdown_obj, defaultText, LV_ALIGN_CENTER, &lifeguardMainCountdown_style);
 
-    //lifeguardCountdownStart_btn = wf_add_play_button(lifeguardCountdownTile, StartLifeguardCountdown, SYSTEM_ICON_STYLE);
-    //lv_obj_align(lifeguardCountdownStart_btn, lifeguardCountdownTile, LV_ALIGN_IN_RIGHT_MID, 0, 0);
-
     lifeguardCountdownStop_btn = wf_add_stop_button(lifeguardCountdownTile, StopLifeguardCountdown, SYSTEM_ICON_STYLE);
-    lv_obj_align(lifeguardCountdownStop_btn, lifeguardCountdownTile, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
+    lv_obj_align(lifeguardCountdownStop_btn, lifeguardCountdownTile, LV_ALIGN_IN_RIGHT_MID, TURN_OFF_COUNTDOWN, TURN_ON_COUNTDOWN);
 
+    lv_obj_t * lifeguardCountdownStopSlider_obj = CreateObject(lifeguardCountdownTile, NULL, LV_ALIGN_IN_BOTTOM_MID, APP_STYLE);
+    lifeguardCountdownStop_slider = CreateSlider(lifeguardCountdownStopSlider_obj, LV_ALIGN_IN_BOTTOM_MID, 0, 1);
+    lv_obj_set_event_cb(lifeguardCountdownStop_slider, LifeguardCountdownStopSliderEventCb);
+    LifeguardCountdownResetSlider();
+
+    lv_tileview_add_element( lifeguardCountdownTile, lifeguardCountdownStopSlider_obj);
     lv_tileview_add_element( lifeguardCountdownTile, lifeguardCountdown_obj);
 
     ResetLifeguardCountDown();
     ResetLifeguardBMAFallStatus();
 }
 
-static void StartLifeguardCountdown( lv_obj_t * obj, lv_event_t event ) 
+void LifeguardCountdownResetSlider()
 {
-    switch( event ) {
-        case( LV_EVENT_CLICKED ):
-            StartCountdown();
+    lv_slider_set_value(lifeguardCountdownStop_slider, TURN_ON_COUNTDOWN, LV_ANIM_OFF);
+}
+
+void LifeguardCountdownStopSliderEventCb(lv_obj_t * obj, lv_event_t event)
+{
+    switch( event )
+    {
+        case ( LV_EVENT_VALUE_CHANGED ): 
+            if(0 == lv_slider_get_value(obj))
+            {
+                StopCountdown();
+            }
             break;
     }
 }
 
 void StartCountdown()
 {
+    isCountdown = true;
     brightness = display_get_brightness();
     lv_disp_trig_activity(NULL);
     display_set_brightness(DISPLAY_MAX_BRIGHTNESS);
-    powermgm_set_event( POWERMGM_WAKEUP_REQUEST );
-    mainbar_jump_to_tilenumber( lifeguardCountdownTile_num, LV_ANIM_OFF, true);
+    powermgm_set_event(POWERMGM_WAKEUP_REQUEST);
+    mainbar_jump_to_tilenumber(lifeguardCountdownTile_num, LV_ANIM_OFF, true);
     lifeguardCountDown_task = lv_task_create(LifeguardCountDownTask, 1000, LV_TASK_PRIO_MID, NULL);
+}
+
+bool GetCountdownStatus()
+{
+    return isCountdown;
 }
 
 static void StopLifeguardCountdown( lv_obj_t * obj, lv_event_t event ) 
@@ -104,13 +128,13 @@ static void CloseCountdown()
 
 static void StopCountdown() 
 {
-    CreateBMATask();
     lv_task_del(lifeguardCountDown_task);
     display_set_brightness(brightness);
     ResetLifeguardCountDown();
-    ResetLifeguardBMAFallStatus();
     mainbar_jump_back();
-    
+    isCountdown = false;
+    ResetLifeguardBMAFallStatus();
+    LifeguardCountdownResetSlider();
 }
 
 static void ResetLifeguardCountDown()
@@ -138,7 +162,6 @@ void LifeguardCountDownTask(lv_task_t * task)
 {
     time_t currentTime; 
     time(&currentTime);
-    int prevcountDown_s = countDown_s;
     countDown_s -= difftime(currentTime, prevTime);
     prevTime = currentTime;
 

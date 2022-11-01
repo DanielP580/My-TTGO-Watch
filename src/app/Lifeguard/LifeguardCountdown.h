@@ -3,5 +3,6 @@
 
     void LifeguardCountdownTileSetup();
     void StartCountdown();
+    bool GetCountdownStatus();
 
 #endif // _LIFEGUARD_COUNTDOWN_H

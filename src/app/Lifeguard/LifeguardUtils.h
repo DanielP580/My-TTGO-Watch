@@ -25,6 +25,7 @@
     lv_obj_t * CreateListObject(lv_obj_t * tileObj, lv_obj_t * alignObj);
     lv_obj_t * CreateListTextarea(lv_obj_t * baseObj, char value[], lv_event_cb_t event);
     lv_obj_t * CreateListLabel(lv_obj_t * baseObj, char name[], lv_align_t align, lv_style_t * style);
-    lv_obj_t * CreateCenterObject(lv_obj_t * tileObj, lv_obj_t * alignObj, lv_style_t * style);
+    lv_obj_t * CreateObject(lv_obj_t * tileObj, lv_obj_t * alignObj, lv_align_t align, lv_style_t * style);
+    lv_obj_t * CreateSlider(lv_obj_t * tileObj, lv_align_t align, int16_t min, int16_t max);
 
 #endif //  _LIFEGUARD_UTILS_H
