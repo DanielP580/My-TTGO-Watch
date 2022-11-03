@@ -149,7 +149,7 @@ static void StopCountdown()
 static void ResetLifeguardCountDown()
 {
     lifeguardConfig_t * lifeguardConfig = GetLifeguardConfig();
-    countDown_s = lifeguardConfig->emergencyTime;
+    countDown_s = lifeguardConfig->emergencyTime_s;
 
     UpdateLifeguardCountDown();
 }
@@ -169,6 +169,7 @@ static void UpdateLifeguardCountDown()
 
 void LifeguardCountDownTask(lv_task_t * task)
 {
+    lifeguardConfig_t * lifeguardConfig = GetLifeguardConfig();
     time_t currentTime; 
     time(&currentTime);
     double diffTime_s = difftime(currentTime, prevTime);
@@ -181,7 +182,7 @@ void LifeguardCountDownTask(lv_task_t * task)
 
     if (countDown_s <= 0)
     {
-        blectl_send_msg( (char*)"\r\nHELP\r\n");
+        blectl_send_msg( (char*)"\r\n{text:\"HELP\", Number:\"%s\"}\r\n", lifeguardConfig->number);
         StopCountdown();
     }
 }

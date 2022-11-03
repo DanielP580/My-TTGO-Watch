@@ -9,8 +9,11 @@
         public:
             lifeguardConfig_t();
             char number[10];
-            int32_t emergencyTime = 10;
+            int32_t emergencyTime_s = 10;
             int32_t sensCalib = 1500;
+            int32_t tempMax_tempC = 35;
+            int32_t tempMin_tempC = -5;
+            int32_t maxTemperatureTime_s = 300;
 
         protected:
             virtual bool onLoad(JsonDocument& document);

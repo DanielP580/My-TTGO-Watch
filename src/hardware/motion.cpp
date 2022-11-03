@@ -209,6 +209,7 @@ bool bma_powermgm_loop_cb( EventBits_t event , void *arg ) {
     static bool BMA_tilt = false;
     static bool BMA_doubleclick = false;
     static bool BMA_stepcounter = false;
+    static bool BMA_anyNoMotion = false;
     bool temp_bma_irq_flag = false;
     /*
      * handle IRQ event
@@ -246,6 +247,10 @@ bool bma_powermgm_loop_cb( EventBits_t event , void *arg ) {
                         powermgm_set_event( POWERMGM_WAKEUP_REQUEST );
                     BMA_tilt = true;
                 }
+                if (!ttgo->bma->isAnyNoMotion()) {
+                    if (!powermgm_get_event(POWERMGM_WAKEUP))
+                    powermgm_set_event(POWERMGM_WAKEUP_REQUEST);
+                }    
                 if ( ttgo->bma->isStepCounter() ) {
                     BMA_stepcounter = true;
                 }
@@ -292,6 +297,10 @@ bool bma_powermgm_loop_cb( EventBits_t event , void *arg ) {
             else if ( BMA_stepcounter ) {
                 BMA_stepcounter = false;
                 bma_notify_stepcounter();
+            }
+            else if (BMA_anyNoMotion) {
+                BMA_anyNoMotion = false;
+                bma_send_event_cb(BMACTL_ANYNOMOTION, NULL);
             }
             break;
         }

@@ -12,6 +12,9 @@ lv_obj_t * lifeguardSetupTile = NULL;
 lv_obj_t * lifeguardNumber_textfield = NULL;
 lv_obj_t * lifeguardEmergencyTime_textfield = NULL;
 lv_obj_t * lifeguardSensCalib_textfield = NULL;
+lv_obj_t * lifeguardTempMax_textfield = NULL;
+lv_obj_t * lifeguardTempMin_textfield = NULL;
+lv_obj_t * lifeguardMaxTemperatureTime_textfield = NULL;
 
 //Function prototypes
 static void LifeguardTextAreaEventCb(lv_obj_t * obj, lv_event_t event);
@@ -51,21 +54,43 @@ void LifeguardSetupTileSetup(uint32_t tileNum)
     lv_obj_t * lifeGuardEmergencyTime_obj = CreateListObject( lifeguardSetupTile, lifeGuardNumber_obj);
     char emergencyTimeName[] = "Emergency\ntime";
     CreateListLabel(lifeGuardEmergencyTime_obj, emergencyTimeName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
-    sprintf(buffer, "%d", lifeguardConfig->emergencyTime);
+    sprintf(buffer, "%d", lifeguardConfig->emergencyTime_s);
     lifeguardEmergencyTime_textfield = CreateListTextarea(lifeGuardEmergencyTime_obj, buffer, LifeguardNumTextAreaEventCb);
 
     //EmergencyTime line definitions
     lv_obj_t * lifeGuardSensCalib_obj = CreateListObject( lifeguardSetupTile, lifeGuardEmergencyTime_obj);
     char emergencySensCalibName[] = "Sens\ncalib";
     CreateListLabel(lifeGuardSensCalib_obj, emergencySensCalibName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
-    
     sprintf(buffer, "%d",lifeguardConfig->sensCalib);
     lifeguardSensCalib_textfield = CreateListTextarea(lifeGuardSensCalib_obj, buffer, LifeguardNumTextAreaEventCb);
+
+    //EmergencyTime line definitions
+    lv_obj_t * lifeGuardTempMax_obj = CreateListObject( lifeguardSetupTile, lifeGuardSensCalib_obj);
+    char emergencyTempMaxName[] = "TempMax";
+    CreateListLabel(lifeGuardTempMax_obj, emergencyTempMaxName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
+    sprintf(buffer, "%d",lifeguardConfig->tempMin_tempC);
+    lifeguardTempMin_textfield = CreateListTextarea(lifeGuardTempMax_obj, buffer, LifeguardNumTextAreaEventCb);
+
+    //EmergencyTime line definitions
+    lv_obj_t * lifeGuardTempMin_obj = CreateListObject( lifeguardSetupTile, lifeGuardTempMax_obj);
+    char emergencyTempMinName[] = "TempMin";
+    CreateListLabel(lifeGuardTempMin_obj, emergencyTempMinName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
+    sprintf(buffer, "%d",lifeguardConfig->tempMin_tempC);
+    lifeguardTempMin_textfield = CreateListTextarea(lifeGuardTempMin_obj, buffer, LifeguardNumTextAreaEventCb);
+
+    //EmergencyTime line definitions
+    lv_obj_t * lifeGuardMaxTemperatureTime_obj = CreateListObject( lifeguardSetupTile, lifeGuardTempMin_obj);
+    char emergencyMaxTemperatureTimeName[] = "maxTemp\nTime";
+    CreateListLabel(lifeGuardMaxTemperatureTime_obj, emergencyMaxTemperatureTimeName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
+    sprintf(buffer, "%d",lifeguardConfig->maxTemperatureTime_s);
+    lifeguardMaxTemperatureTime_textfield = CreateListTextarea(lifeGuardMaxTemperatureTime_obj, buffer, LifeguardNumTextAreaEventCb);
 
     //Add elements to tile
     lv_tileview_add_element( lifeguardSetupTile, lifeGuardNumber_obj);
     lv_tileview_add_element( lifeguardSetupTile, lifeGuardEmergencyTime_obj);
     lv_tileview_add_element( lifeguardSetupTile, lifeGuardSensCalib_obj);
+    lv_tileview_add_element( lifeguardSetupTile, lifeGuardTempMax_obj);
+    lv_tileview_add_element( lifeguardSetupTile, lifeGuardTempMin_obj);
 }
 
 /*
@@ -79,8 +104,10 @@ static void LifeguardSetupHibernateCallback(void)
     keyboard_hide();
     lifeguardConfig_t *lifeguardConfig = GetLifeguardConfig();
     strncpy( lifeguardConfig->number, lv_textarea_get_text( lifeguardNumber_textfield), sizeof(lifeguardConfig->number));
-    lifeguardConfig->emergencyTime = atoi(lv_textarea_get_text( lifeguardEmergencyTime_textfield));
+    lifeguardConfig->emergencyTime_s = atoi(lv_textarea_get_text( lifeguardEmergencyTime_textfield));
     lifeguardConfig->sensCalib = atoi(lv_textarea_get_text(lifeguardSensCalib_textfield));
+    lifeguardConfig->tempMax_tempC = atoi(lv_textarea_get_text(lifeguardTempMax_textfield));
+    lifeguardConfig->tempMin_tempC = atoi(lv_textarea_get_text(lifeguardTempMin_textfield));
     lifeguardConfig->save();
 }
 
@@ -99,7 +126,6 @@ static void LifeguardTextAreaEventCb(lv_obj_t * obj, lv_event_t event)
             break;
     }
 }
-
 
 /* 
     /brief

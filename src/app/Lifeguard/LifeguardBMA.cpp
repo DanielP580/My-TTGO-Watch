@@ -8,6 +8,8 @@
 #include "LifeguardUtils.h"
 #include <inttypes.h> 
 
+#define BMA_TASK_PERIOD 100
+
 //Tile definition
 lv_obj_t * lifeguardBMATile = NULL;
 
@@ -20,7 +22,7 @@ lv_obj_t * lifeguardX_label = NULL;
 lv_obj_t * lifeguardY_label = NULL;
 lv_obj_t * lifeguardZ_label = NULL;
 lv_obj_t * lifeguardStatus_label = NULL;
-lv_obj_t * lifeguardTries_label = NULL;
+lv_obj_t * lifeguardTemperature_label = NULL;
 
 Accel acceleration;
 int X_accel;
@@ -32,10 +34,13 @@ int prevZ_accel;
 
 char activity_c[23];
 char tries_c[10];
+char temperature_c[10];
 
 int pressCount = 0;
 int tries = 0;
 int maxTries = 10;
+float temperatureTime_s = 0;
+float temperature = 0;
 
 bool isFall = false;
 
@@ -44,6 +49,7 @@ lv_task_t * lifeguardBMA_task;
 static void SetupLifeguardBMA();
 static void UpdateLifeguardBMAStatus();
 void LifeguardBMATask(lv_task_t * task);
+bool LifeguardBMAPowermgmLoopCb(EventBits_t event, void *arg);
 
 void LifeguardBMATileSetup(uint32_t tileNum)
 {
@@ -75,26 +81,56 @@ void LifeguardBMATileSetup(uint32_t tileNum)
 
     //Status definitions
     lv_obj_t * lifeGuardBMA_statusobj = CreateListObject( lifeguardBMATile, lifeGuardBMA_Zobj);
-    char statusName[] = "Status";
+    char statusName[] = "Temp";
     CreateListLabel(lifeGuardBMA_statusobj, statusName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
     lifeguardStatus_label = CreateListLabel(lifeGuardBMA_statusobj, defaultName, LV_ALIGN_CENTER, SETUP_STYLE);
 
     //Trues definitions
-    lv_obj_t * lifeGuardBMA_triesobj = CreateListObject( lifeguardBMATile, lifeGuardBMA_statusobj);
+    lv_obj_t * lifeGuardBMA_temperatureobj = CreateListObject( lifeguardBMATile, lifeGuardBMA_statusobj);
     char triesName[] = "Tries";
-    CreateListLabel(lifeGuardBMA_triesobj, triesName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
-    lifeguardTries_label = CreateListLabel(lifeGuardBMA_triesobj, defaultName, LV_ALIGN_CENTER, SETUP_STYLE);
+    CreateListLabel(lifeGuardBMA_temperatureobj, triesName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
+    lifeguardTemperature_label = CreateListLabel(lifeGuardBMA_temperatureobj, defaultName, LV_ALIGN_CENTER, SETUP_STYLE);
 
     lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_Xobj);
     lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_Yobj);
     lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_Zobj);
-    lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_statusobj);
-    lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_triesobj);
+    lv_tileview_add_element( lifeguardBMATile, lifeguardStatus_label);
+    lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_temperatureobj);
 
     SetupLifeguardBMA();
     CreateBMATask();
+}
+
+static void SetupLifeguardBMA()
+{
+    bma423_anymotion_config anymotionconfig;
+    TTGOClass *ttgo = TTGOClass::getWatch();    
+
+    //commented is skipped due to hardware/motion doing the job
+
+    //pinMode(BMA423_INT1, INPUT);
+    //attachInterrupt(BMA423_INT1, powermgm_resume_from_ISR, RISING);
+
+    //ttgo->bma->begin();
+    //ttgo->bma->attachInterrupt();
+    //ttgo->bma->direction();
+    ttgo->bma->enableAccel(BMA4_ENABLE);
+
+    //this part is not supported by official BMA library it will not work without modification
+    anymotionconfig.nomotion_sel = BMA423_ALL_AXIS_EN;
+    anymotionconfig.threshold = 1;
+    anymotionconfig.duration = 1;
+    //uses function that is not developed in bma423.h
+    ttgo->bma->set_any_mo_config(&anymotionconfig);
+    //this part is not supported by official BMA library it will not work without modification
+
+    ttgo->bma->enableAnyNoMotionInterrupt(true);
+
+    //powermgm_register_loop_cb(POWERMGM_SILENCE_WAKEUP | POWERMGM_STANDBY | POWERMGM_WAKEUP, LifeguardBMAPowermgmLoopCb, "Lifegurad powermgm bma loop");
     
-    TTGOClass *ttgo = TTGOClass::getWatch();
+    //gpio_wakeup_enable((gpio_num_t)BMA423_INT1, GPIO_INTR_HIGH_LEVEL);
+    //esp_sleep_enable_gpio_wakeup();
+
     if (true == ttgo->bma->getAccel(acceleration))
     {
         prevX_accel = int(acceleration.x);
@@ -103,9 +139,25 @@ void LifeguardBMATileSetup(uint32_t tileNum)
     }
 }
 
+bool LifeguardBMAPowermgmLoopCb(EventBits_t event, void *arg)
+{
+    TTGOClass *ttgo = TTGOClass::getWatch();
+    ttgo->bma->readInterrupt();
+
+    if (ttgo->bma->isAnyNoMotion()) {
+        if (!powermgm_get_event(POWERMGM_WAKEUP))
+            powermgm_set_event(POWERMGM_SILENCE_WAKEUP_REQUEST);
+    }
+
+    return true;
+}
+
+/**
+    * @brief Create task for bma. It works only when powermgm is in POWERMGM_WAKEUP
+*/
 void CreateBMATask()
 {
-    lifeguardBMA_task = lv_task_create(LifeguardBMATask, 250, LV_TASK_PRIO_LOW, NULL);
+    lifeguardBMA_task = lv_task_create(LifeguardBMATask, BMA_TASK_PERIOD, LV_TASK_PRIO_LOW, NULL);
 }
 
 void KillBMATask()
@@ -123,21 +175,17 @@ void ResetLifeguardBMAFallStatus()
     isFall = false;
 }
 
-static void SetupLifeguardBMA()
-{
-    TTGOClass *ttgo = TTGOClass::getWatch();
-    ttgo->bma->begin();
-    ttgo->bma->enableAccel(BMA4_ENABLE);
-}
-
 static void UpdateLifeguardBMAStatus()
 {
     lifeguardConfig_t *lifeguardConfig = GetLifeguardConfig();
     TTGOClass *ttgo = TTGOClass::getWatch();
 
-    ttgo->bma->isDoubleClick();
+    //The doubleclick is defined in BMA library but cannot be accessed
+    //Add the functionality to possibly allow for 5 tap countdown start
+    //ttgo->bma->isDoubleClick();
 
     /* TBD */
+    /*
     ttgo->power->readIRQ();
     if ((true == ttgo->power->isPEKShortPressIRQ()) && !GetCountdownStatus()) {
         pressCount += 1;
@@ -148,6 +196,7 @@ static void UpdateLifeguardBMAStatus()
             StartCountdown();
         }
     }
+    */
     /* TBD */
 
     if (true == ttgo->bma->getAccel(acceleration))
@@ -204,10 +253,26 @@ static void UpdateLifeguardBMAStatus()
     }
 
     //activity
-    sprintf(tries_c, "%d", tries);
+    temperature = ttgo->bma->temperature();
+    sprintf(temperature_c, "%8f", temperature);
 
-    lv_label_set_text(lifeguardTries_label, tries_c);
-    lv_obj_align(lifeguardTries_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
+    if((temperature > lifeguardConfig->tempMax_tempC) || (temperature < lifeguardConfig->tempMin_tempC))
+    {
+        temperatureTime_s += BMA_TASK_PERIOD/1000;
+        if (temperatureTime_s >= lifeguardConfig->maxTemperatureTime_s)
+        {
+            temperatureTime_s = 0;
+            StartCountdown();
+        }
+    }
+    else
+    {
+        temperatureTime_s = 0;
+    }
+
+    lv_label_set_text(lifeguardTemperature_label, temperature_c);
+    lv_obj_align(lifeguardTemperature_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
+    blectl_send_msg( (char*)"\r\n{X:\"%d\", Y:\"%d\", Z:\"%d\", Ac:\"%s\", T:\"%s\"}\r\n", X_accel, Y_accel, Z_accel, activity_c, temperature_c);
 }
 
 void LifeguardBMATask(lv_task_t * task)
