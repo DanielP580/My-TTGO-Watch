@@ -253,7 +253,7 @@ static void UpdateLifeguardBMAStatus()
     }
 
     //activity
-    temperature = ttgo->bma->temperature();
+    temperature = ttgo->bma->temperature() - 15;
     sprintf(temperature_c, "%8f", temperature);
 
     if((temperature > lifeguardConfig->tempMax_tempC) || (temperature < lifeguardConfig->tempMin_tempC))
