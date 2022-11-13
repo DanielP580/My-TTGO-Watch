@@ -22,6 +22,7 @@ LV_FONT_DECLARE(Ubuntu_16px);
 static void EnterLifeguardSetupEventCb(lv_obj_t * obj, lv_event_t event);
 static void EnterLifeguardBMAEventCb(lv_obj_t * obj, lv_event_t event);
 static void StartLifeguardCountdown(lv_obj_t * obj, lv_event_t event);
+static void ExitLifeguardEventCb(lv_obj_t * obj, lv_event_t event);
 
 /*
     /brief
@@ -39,24 +40,39 @@ void LifeguardMainTileSetup(uint32_t tileNum)
     lv_obj_add_style( lifeguardMainTile, LV_OBJ_PART_MAIN, &lifeguardMainStyle );
 
     //Create buttons
-    lv_obj_t * lifeguardExit_btn = wf_add_exit_button( lifeguardMainTile, SYSTEM_ICON_STYLE);
-    lv_obj_align(lifeguardExit_btn, lifeguardMainTile, LV_ALIGN_IN_BOTTOM_LEFT, 10, -10);
 
-    lv_obj_t * lifeguardSetup_btn = wf_add_setup_button( lifeguardMainTile, EnterLifeguardSetupEventCb, SYSTEM_ICON_STYLE);
-    lv_obj_align(lifeguardSetup_btn, lifeguardMainTile, LV_ALIGN_IN_BOTTOM_RIGHT, -10, -10);
+    //lv_obj_t * lifeguardExit_btn = wf_add_exit_button( lifeguardMainTile, SYSTEM_ICON_STYLE);
+    //lv_obj_align(lifeguardExit_btn, lifeguardMainTile, LV_ALIGN_IN_BOTTOM_LEFT, 10, -10);
+    //lv_obj_set_size(lifeguardExit_btn, 64, 64);
 
-    lv_obj_t * lifeguardBMA_btn = wf_add_setup_button( lifeguardMainTile, EnterLifeguardBMAEventCb, SYSTEM_ICON_STYLE);
-    lv_obj_align(lifeguardBMA_btn, lifeguardMainTile, LV_ALIGN_IN_TOP_LEFT, 10, 10);
+    lv_obj_t * lifeguardSetup_btn = wf_add_button(lifeguardMainTile, "Setup", lv_disp_get_hor_res(NULL)/3, lv_disp_get_ver_res(NULL)/5, EnterLifeguardSetupEventCb);
+    lv_obj_align(lifeguardSetup_btn, lifeguardMainTile, LV_ALIGN_IN_TOP_MID, 0, lv_disp_get_ver_res(NULL) * 0/4);
 
-    lifeguardCountdownStart_btn = wf_add_play_button(lifeguardMainTile, StartLifeguardCountdown, SYSTEM_ICON_STYLE);
-    lv_obj_align(lifeguardCountdownStart_btn, lifeguardMainTile, LV_ALIGN_IN_RIGHT_MID, 0, 0);
+    lv_obj_t * lifeguardBMA_btn = wf_add_button(lifeguardMainTile, "BMA", lv_disp_get_hor_res(NULL)/3, lv_disp_get_ver_res(NULL)/5, EnterLifeguardBMAEventCb);
+    lv_obj_align(lifeguardBMA_btn, lifeguardMainTile, LV_ALIGN_IN_TOP_MID, 0, lv_disp_get_ver_res(NULL) * 1/4);
+
+    lifeguardCountdownStart_btn = wf_add_button(lifeguardMainTile, "Test Start", lv_disp_get_hor_res(NULL)/3, lv_disp_get_ver_res(NULL)/5, StartLifeguardCountdown);
+    lv_obj_align(lifeguardCountdownStart_btn, lifeguardMainTile, LV_ALIGN_IN_TOP_MID, 0, lv_disp_get_ver_res(NULL) * 2/4);;
+
+    lv_obj_t * lifeguardExit_btn = wf_add_button( lifeguardMainTile, "Exit", lv_disp_get_hor_res(NULL)/3, lv_disp_get_ver_res(NULL)/5, ExitLifeguardEventCb);
+    lv_obj_align(lifeguardExit_btn, lifeguardMainTile, LV_ALIGN_IN_TOP_MID, 0, lv_disp_get_ver_res(NULL) * 3/4);
 }
+
 
 static void StartLifeguardCountdown(lv_obj_t * obj, lv_event_t event) 
 {
     switch( event ) {
         case( LV_EVENT_CLICKED ):
             StartCountdown();
+            break;
+    }
+}
+
+static void ExitLifeguardEventCb(lv_obj_t * obj, lv_event_t event) 
+{
+    switch( event ) {
+        case( LV_EVENT_CLICKED ):       
+            mainbar_jump_to_maintile(LV_ANIM_OFF);
             break;
     }
 }

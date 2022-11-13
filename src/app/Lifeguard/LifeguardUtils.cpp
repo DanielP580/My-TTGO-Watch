@@ -11,7 +11,7 @@
 lv_obj_t * CreateListObject(lv_obj_t * tileObj, lv_obj_t * alignObj)
 {
     lv_obj_t * obj = lv_obj_create( tileObj, NULL);
-    lv_obj_set_size(obj, lv_disp_get_hor_res( NULL ), 37);
+    lv_obj_set_size(obj, lv_disp_get_hor_res(NULL), 35);
     lv_obj_add_style(obj, LV_OBJ_PART_MAIN, SETUP_STYLE);
     lv_obj_align(obj, alignObj, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
     return obj;
@@ -28,13 +28,13 @@ lv_obj_t * CreateListObject(lv_obj_t * tileObj, lv_obj_t * alignObj)
 */
 lv_obj_t * CreateListTextarea(lv_obj_t * baseObj, char value[], lv_event_cb_t event)
 {
-    lv_obj_t * textfield = lv_textarea_create( baseObj, NULL);
+    lv_obj_t * textfield = lv_textarea_create(baseObj, NULL);
     lv_textarea_set_text(textfield, value);
     lv_textarea_set_pwd_mode(textfield, false);
     lv_textarea_set_one_line(textfield, true);
-    lv_obj_set_width( textfield, lv_disp_get_hor_res( NULL ) / 4 * 1.5);
-    lv_obj_align( textfield, baseObj, LV_ALIGN_IN_RIGHT_MID, -20, 0 );
-    lv_obj_set_event_cb( textfield, event);
+    lv_obj_set_width(textfield, lv_disp_get_hor_res( NULL ) / 3);
+    lv_obj_align(textfield, baseObj, LV_ALIGN_IN_RIGHT_MID, -70, 0);
+    lv_obj_set_event_cb(textfield, event);
     return textfield;
 }
 

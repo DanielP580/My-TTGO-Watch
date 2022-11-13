@@ -33,7 +33,7 @@ void LifeguardSetupTileSetup(uint32_t tileNum)
     lifeguardConfig_t *lifeguardConfig = GetLifeguardConfig();
 
     //Use function when hibernation occurs
-    mainbar_add_tile_hibernate_cb( tileNum, LifeguardSetupHibernateCallback);
+    //mainbar_add_tile_hibernate_cb( tileNum, LifeguardSetupHibernateCallback);
 
     //Use new tile num and based on that create new object
     lifeguardSetupTile = mainbar_get_tile_obj( tileNum);
@@ -57,33 +57,33 @@ void LifeguardSetupTileSetup(uint32_t tileNum)
     sprintf(buffer, "%d", lifeguardConfig->emergencyTime_s);
     lifeguardEmergencyTime_textfield = CreateListTextarea(lifeGuardEmergencyTime_obj, buffer, LifeguardNumTextAreaEventCb);
 
-    //EmergencyTime line definitions
+    //SensCalib line definitions
     lv_obj_t * lifeGuardSensCalib_obj = CreateListObject( lifeguardSetupTile, lifeGuardEmergencyTime_obj);
     char emergencySensCalibName[] = "Sens\ncalib";
     CreateListLabel(lifeGuardSensCalib_obj, emergencySensCalibName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
     sprintf(buffer, "%d",lifeguardConfig->sensCalib);
     lifeguardSensCalib_textfield = CreateListTextarea(lifeGuardSensCalib_obj, buffer, LifeguardNumTextAreaEventCb);
 
-    //EmergencyTime line definitions
+    //TempMax line definitions
     lv_obj_t * lifeGuardTempMax_obj = CreateListObject( lifeguardSetupTile, lifeGuardSensCalib_obj);
     char emergencyTempMaxName[] = "TempMax";
     CreateListLabel(lifeGuardTempMax_obj, emergencyTempMaxName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
-    sprintf(buffer, "%d",lifeguardConfig->tempMin_tempC);
+    sprintf(buffer, "%d",lifeguardConfig->tempMax_tempC);
     lifeguardTempMin_textfield = CreateListTextarea(lifeGuardTempMax_obj, buffer, LifeguardNumTextAreaEventCb);
 
-    //EmergencyTime line definitions
+    //TempMin line definitions
     lv_obj_t * lifeGuardTempMin_obj = CreateListObject( lifeguardSetupTile, lifeGuardTempMax_obj);
     char emergencyTempMinName[] = "TempMin";
     CreateListLabel(lifeGuardTempMin_obj, emergencyTempMinName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
     sprintf(buffer, "%d",lifeguardConfig->tempMin_tempC);
     lifeguardTempMin_textfield = CreateListTextarea(lifeGuardTempMin_obj, buffer, LifeguardNumTextAreaEventCb);
 
-    //EmergencyTime line definitions
-    lv_obj_t * lifeGuardMaxTemperatureTime_obj = CreateListObject( lifeguardSetupTile, lifeGuardTempMin_obj);
-    char emergencyMaxTemperatureTimeName[] = "maxTemp\nTime";
-    CreateListLabel(lifeGuardMaxTemperatureTime_obj, emergencyMaxTemperatureTimeName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
-    sprintf(buffer, "%d",lifeguardConfig->maxTemperatureTime_s);
-    lifeguardMaxTemperatureTime_textfield = CreateListTextarea(lifeGuardMaxTemperatureTime_obj, buffer, LifeguardNumTextAreaEventCb);
+    //MaxTempTime line definitions
+    //lv_obj_t * lifeGuardMaxTemperatureTime_obj = CreateListObject( lifeguardSetupTile, lifeGuardTempMin_obj);
+    //char emergencyMaxTemperatureTimeName[] = "maxTemp\nTime";
+    //CreateListLabel(lifeGuardMaxTemperatureTime_obj, emergencyMaxTemperatureTimeName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
+    //sprintf(buffer, "%d",lifeguardConfig->maxTemperatureTime_s);
+    //lifeguardMaxTemperatureTime_textfield = CreateListTextarea(lifeGuardMaxTemperatureTime_obj, buffer, LifeguardNumTextAreaEventCb);
 
     //Add elements to tile
     lv_tileview_add_element( lifeguardSetupTile, lifeGuardNumber_obj);
