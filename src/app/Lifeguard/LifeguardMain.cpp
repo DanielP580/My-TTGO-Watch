@@ -63,7 +63,7 @@ static void StartLifeguardCountdown(lv_obj_t * obj, lv_event_t event)
 {
     switch( event ) {
         case( LV_EVENT_CLICKED ):
-            StartCountdown();
+            LifeguardCountdownStart();
             break;
     }
 }

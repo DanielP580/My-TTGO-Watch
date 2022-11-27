@@ -2,7 +2,7 @@
     #define  _LIFEGUARD_COUNTDOWN_H
 
     void LifeguardCountdownTileSetup();
-    void StartCountdown();
+    void LifeguardCountdownStart();
     bool GetCountdownStatus();
 
 #endif // _LIFEGUARD_COUNTDOWN_H

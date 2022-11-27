@@ -149,7 +149,7 @@ bool LifeguardBMAMotionLoopCb(EventBits_t event, void *arg)
 {
     powermgm_set_event(POWERMGM_SILENCE_WAKEUP_REQUEST);
     lv_task_ready(lifeguardBMA_task);
-    StartCountdown();
+    LifeguardCountdownStart();
 
     return true;
 }
@@ -243,7 +243,7 @@ static void LifeguardBMACheckForFall()
     {
         if(((0 == strncmp(activity_c,"BMA423_USER_STATIONARY", 23)) || (0 ==strncmp(activity_c,"None", 4))))
         {
-            StartCountdown();
+            LifeguardCountdownStart();
         } 
         else if(++tries >= maxTries)
         {
@@ -257,7 +257,7 @@ static void LifeguardBMACheckForFall()
         if (temperatureTime_s >= lifeguardConfig->maxTemperatureTime_s)
         {
             temperatureTime_s = 0;
-            StartCountdown();
+            LifeguardCountdownStart();
         }
     }
     else
