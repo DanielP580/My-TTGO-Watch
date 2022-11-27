@@ -30,7 +30,8 @@
     #define BMACTL_STEPCOUNTER          _BV(2)              /** @brief event mask for an stepcounter update event, callback arg is (uint32*) */
     #define BMACTL_STEPCOUNTER_RESET    _BV(3)              /** @brief event mask for an stepcounter reset event */
     #define BMACTL_TILT                 _BV(4)              /** @brief event mask for an tilt event */
-    #define BMACTL_ANYNOMOTION          _BV(5)              /** @brief event mask for an tilt event */
+    #define BMACTL_ANYNOMOTION          _BV(5)              /** @brief event mask for an anynomotion event */
+    #define BMACTL_ACTIVITY             _BV(6)              /** @brief event mask for an activity event */
     /**
      * @brief setup bma activity measurement
      */

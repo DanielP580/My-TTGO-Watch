@@ -68,6 +68,7 @@
         portENTER_CRITICAL_ISR(&BMA_IRQ_Mux);
         bma_irq_flag = true;
         portEXIT_CRITICAL_ISR(&BMA_IRQ_Mux);
+
         powermgm_resume_from_ISR();
     }
 #endif
@@ -210,6 +211,7 @@ bool bma_powermgm_loop_cb( EventBits_t event , void *arg ) {
     static bool BMA_doubleclick = false;
     static bool BMA_stepcounter = false;
     static bool BMA_anyNoMotion = false;
+    static bool BMA_activity = false;
     bool temp_bma_irq_flag = false;
     /*
      * handle IRQ event
@@ -247,9 +249,15 @@ bool bma_powermgm_loop_cb( EventBits_t event , void *arg ) {
                         powermgm_set_event( POWERMGM_WAKEUP_REQUEST );
                     BMA_tilt = true;
                 }
+                if (ttgo->bma->isActivity()){
+                    if ( !powermgm_get_event( POWERMGM_WAKEUP ) )
+                        powermgm_set_event( POWERMGM_SILENCE_WAKEUP_REQUEST );
+                    BMA_activity = true;
+                }
                 if (!ttgo->bma->isAnyNoMotion()) {
                     if (!powermgm_get_event(POWERMGM_WAKEUP))
-                    powermgm_set_event(POWERMGM_WAKEUP_REQUEST);
+                    powermgm_set_event(POWERMGM_SILENCE_WAKEUP_REQUEST);
+                    BMA_anyNoMotion = true;
                 }    
                 if ( ttgo->bma->isStepCounter() ) {
                     BMA_stepcounter = true;
@@ -297,6 +305,13 @@ bool bma_powermgm_loop_cb( EventBits_t event , void *arg ) {
             else if ( BMA_stepcounter ) {
                 BMA_stepcounter = false;
                 bma_notify_stepcounter();
+            }
+            break;
+        }
+        case POWERMGM_SILENCE_WAKEUP:   {
+            if (BMA_activity){
+                BMA_activity = false;
+                bma_send_event_cb(BMACTL_ACTIVITY, NULL);
             }
             else if (BMA_anyNoMotion) {
                 BMA_anyNoMotion = false;

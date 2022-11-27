@@ -7,6 +7,7 @@
 #include "config/LifeguardConfig.h"
 #include "LifeguardUtils.h"
 #include <inttypes.h> 
+#include "hardware/motion.h"
 
 #define BMA_TASK_PERIOD 100
 
@@ -49,7 +50,11 @@ lv_task_t * lifeguardBMA_task;
 static void SetupLifeguardBMA();
 static void UpdateLifeguardBMAStatus();
 void LifeguardBMATask(lv_task_t * task);
-bool LifeguardBMAPowermgmLoopCb(EventBits_t event, void *arg);
+bool LifeguardBMAActivityLoopCb(EventBits_t event, void *arg);
+bool LifeguardBMAMotionLoopCb(EventBits_t event, void *arg);
+static void LifeguardBMASendBluetoothMessage();
+static void LifeguardBMACheckForFall();
+static void LifeguardBMAUpdateObjects();
 
 void LifeguardBMATileSetup(uint32_t tileNum)
 {
@@ -81,13 +86,13 @@ void LifeguardBMATileSetup(uint32_t tileNum)
 
     //Status definitions
     lv_obj_t * lifeGuardBMA_statusobj = CreateListObject( lifeguardBMATile, lifeGuardBMA_Zobj);
-    char statusName[] = "Temp";
+    char statusName[] = "Status";
     CreateListLabel(lifeGuardBMA_statusobj, statusName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
     lifeguardStatus_label = CreateListLabel(lifeGuardBMA_statusobj, defaultName, LV_ALIGN_CENTER, SETUP_STYLE);
 
-    //Trues definitions
+    //Temperature definitions
     lv_obj_t * lifeGuardBMA_temperatureobj = CreateListObject( lifeguardBMATile, lifeGuardBMA_statusobj);
-    char triesName[] = "Tries";
+    char triesName[] = "Temp";
     CreateListLabel(lifeGuardBMA_temperatureobj, triesName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
     lifeguardTemperature_label = CreateListLabel(lifeGuardBMA_temperatureobj, defaultName, LV_ALIGN_CENTER, SETUP_STYLE);
 
@@ -106,30 +111,23 @@ static void SetupLifeguardBMA()
     bma423_anymotion_config anymotionconfig;
     TTGOClass *ttgo = TTGOClass::getWatch();    
 
-    //commented is skipped due to hardware/motion doing the job
-
-    //pinMode(BMA423_INT1, INPUT);
-    //attachInterrupt(BMA423_INT1, powermgm_resume_from_ISR, RISING);
-
-    //ttgo->bma->begin();
-    //ttgo->bma->attachInterrupt();
-    //ttgo->bma->direction();
+    ttgo->bma->enableFeature(BMA423_ACTIVITY, 1);
+    ttgo->bma->enableActivityInterrupt(BMA4_ENABLE);
+    ttgo->bma->enableFeature(BMA423_ANY_MOTION, 1);
+    ttgo->bma->enableAnyNoMotionInterrupt(BMA4_ENABLE);
     ttgo->bma->enableAccel(BMA4_ENABLE);
+    
 
     //this part is not supported by official BMA library it will not work without modification
     anymotionconfig.nomotion_sel = BMA423_ALL_AXIS_EN;
-    anymotionconfig.threshold = 1;
-    anymotionconfig.duration = 1;
+    anymotionconfig.threshold = 4; //0.5 g
+    anymotionconfig.duration = 1; //20ms movement
     //uses function that is not developed in bma423.h
     ttgo->bma->set_any_mo_config(&anymotionconfig);
-    //this part is not supported by official BMA library it will not work without modification
+    //this part is not supported by official BMA library it will not work without modificatio
 
-    ttgo->bma->enableAnyNoMotionInterrupt(true);
-
-    //powermgm_register_loop_cb(POWERMGM_SILENCE_WAKEUP | POWERMGM_STANDBY | POWERMGM_WAKEUP, LifeguardBMAPowermgmLoopCb, "Lifegurad powermgm bma loop");
-    
-    //gpio_wakeup_enable((gpio_num_t)BMA423_INT1, GPIO_INTR_HIGH_LEVEL);
-    //esp_sleep_enable_gpio_wakeup();
+    bma_register_cb(BMACTL_ACTIVITY, LifeguardBMAActivityLoopCb, "activity update");
+    bma_register_cb(BMACTL_ACTIVITY, LifeguardBMAMotionLoopCb, "activity update");
 
     if (true == ttgo->bma->getAccel(acceleration))
     {
@@ -139,15 +137,19 @@ static void SetupLifeguardBMA()
     }
 }
 
-bool LifeguardBMAPowermgmLoopCb(EventBits_t event, void *arg)
+bool LifeguardBMAActivityLoopCb(EventBits_t event, void *arg)
 {
-    TTGOClass *ttgo = TTGOClass::getWatch();
-    ttgo->bma->readInterrupt();
+    powermgm_set_event(POWERMGM_SILENCE_WAKEUP_REQUEST);
+    lv_task_ready(lifeguardBMA_task);
 
-    if (ttgo->bma->isAnyNoMotion()) {
-        if (!powermgm_get_event(POWERMGM_WAKEUP))
-            powermgm_set_event(POWERMGM_SILENCE_WAKEUP_REQUEST);
-    }
+    return true;
+}
+
+bool LifeguardBMAMotionLoopCb(EventBits_t event, void *arg)
+{
+    powermgm_set_event(POWERMGM_SILENCE_WAKEUP_REQUEST);
+    lv_task_ready(lifeguardBMA_task);
+    StartCountdown();
 
     return true;
 }
@@ -157,7 +159,7 @@ bool LifeguardBMAPowermgmLoopCb(EventBits_t event, void *arg)
 */
 void CreateBMATask()
 {
-    lifeguardBMA_task = lv_task_create(LifeguardBMATask, BMA_TASK_PERIOD, LV_TASK_PRIO_LOW, NULL);
+    lifeguardBMA_task = lv_task_create(LifeguardBMATask, BMA_TASK_PERIOD, LV_TASK_PRIO_HIGH, NULL);
 }
 
 void KillBMATask()
@@ -180,59 +182,40 @@ static void UpdateLifeguardBMAStatus()
     lifeguardConfig_t *lifeguardConfig = GetLifeguardConfig();
     TTGOClass *ttgo = TTGOClass::getWatch();
 
-    //The doubleclick is defined in BMA library but cannot be accessed
-    //Add the functionality to possibly allow for 5 tap countdown start
-    //ttgo->bma->isDoubleClick();
-
-    /* TBD */
-    /*
-    ttgo->power->readIRQ();
-    if ((true == ttgo->power->isPEKShortPressIRQ()) && !GetCountdownStatus()) {
-        pressCount += 1;
-
-        if (pressCount >= 5)
-        {
-            pressCount = 0;
-            StartCountdown();
-        }
-    }
-    */
-    /* TBD */
-
     if (true == ttgo->bma->getAccel(acceleration))
     {
         X_accel = int(acceleration.x);
         Y_accel = int(acceleration.y);
-        Z_accel = int(acceleration.z);
+        Z_accel = int(acceleration.z);  
 
-        if(!isFall && (sqrt(pow(X_accel - prevX_accel, 2) + pow(Y_accel - prevY_accel, 2 ) + pow(Z_accel - prevZ_accel, 2 )) >= lifeguardConfig->sensCalib))
-        {
-            isFall = true;
-        }
-
-        char dir_accel[10];
-        //X
-        sprintf(dir_accel, "%d" , X_accel);
-
-        lv_label_set_text(lifeguardX_label, dir_accel);
-        lv_obj_align(lifeguardX_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
-
-        //Y
-        sprintf(dir_accel, "%d", Y_accel);
-
-        lv_label_set_text(lifeguardY_label, dir_accel);
-        lv_obj_align(lifeguardY_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
-
-        //Z
-        sprintf(dir_accel, "%d", Z_accel);
-
-        lv_label_set_text(lifeguardZ_label, dir_accel);
-        lv_obj_align(lifeguardZ_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
-
-        prevX_accel = X_accel;
-        prevY_accel = Y_accel;
-        prevZ_accel = Z_accel;
+        temperature = ttgo->bma->temperature();
     }
+
+    LifeguardBMAUpdateObjects();
+    LifeguardBMACheckForFall();
+    LifeguardBMASendBluetoothMessage();
+}
+
+static void LifeguardBMAUpdateObjects()
+{
+    lifeguardConfig_t *lifeguardConfig = GetLifeguardConfig();
+    TTGOClass *ttgo = TTGOClass::getWatch();
+
+    char dir_accel[10];
+    //X
+    sprintf(dir_accel, "%d" , X_accel);
+    lv_label_set_text(lifeguardX_label, dir_accel);
+    lv_obj_align(lifeguardX_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
+
+    //Y
+    sprintf(dir_accel, "%d", Y_accel);
+    lv_label_set_text(lifeguardY_label, dir_accel);
+    lv_obj_align(lifeguardY_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
+
+    //Z
+    sprintf(dir_accel, "%d", Z_accel);
+    lv_label_set_text(lifeguardZ_label, dir_accel);
+    lv_obj_align(lifeguardZ_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
 
     //activity
     sprintf(activity_c, "%s", ttgo->bma->getActivity());
@@ -240,9 +223,25 @@ static void UpdateLifeguardBMAStatus()
     lv_label_set_text(lifeguardStatus_label, activity_c);
     lv_obj_align(lifeguardStatus_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
 
+    //temperature
+    sprintf(temperature_c, "%8f", temperature);
+
+    lv_label_set_text(lifeguardTemperature_label, temperature_c);
+    lv_obj_align(lifeguardTemperature_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
+}
+
+static void LifeguardBMACheckForFall()
+{
+    lifeguardConfig_t *lifeguardConfig = GetLifeguardConfig();
+
+    if(!isFall && (sqrt(pow(X_accel - prevX_accel, 2) + pow(Y_accel - prevY_accel, 2 ) + pow(Z_accel - prevZ_accel, 2 )) >= lifeguardConfig->sensCalib))
+    {
+        isFall = true;
+    }
+
     if(isFall && !GetCountdownStatus())
     {
-        if((0 == strncmp(activity_c,"BMA423_USER_STATIONARY", 23)) || (0 ==strncmp(activity_c,"None", 4)))
+        if(((0 == strncmp(activity_c,"BMA423_USER_STATIONARY", 23)) || (0 ==strncmp(activity_c,"None", 4))))
         {
             StartCountdown();
         } 
@@ -251,10 +250,6 @@ static void UpdateLifeguardBMAStatus()
             ResetLifeguardBMAFallStatus();
         }
     }
-
-    //activity
-    temperature = ttgo->bma->temperature() - 15;
-    sprintf(temperature_c, "%8f", temperature);
 
     if((temperature > lifeguardConfig->tempMax_tempC) || (temperature < lifeguardConfig->tempMin_tempC))
     {
@@ -270,10 +265,16 @@ static void UpdateLifeguardBMAStatus()
         temperatureTime_s = 0;
     }
 
-    lv_label_set_text(lifeguardTemperature_label, temperature_c);
-    lv_obj_align(lifeguardTemperature_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
+    prevX_accel = X_accel;
+    prevY_accel = Y_accel;
+    prevZ_accel = Z_accel;
+}
+static void LifeguardBMASendBluetoothMessage()
+{
     blectl_send_msg( (char*)"\r\n{X:\"%d\", Y:\"%d\", Z:\"%d\", Ac:\"%s\", T:\"%s\"}\r\n", X_accel, Y_accel, Z_accel, activity_c, temperature_c);
 }
+
+
 
 void LifeguardBMATask(lv_task_t * task)
 {

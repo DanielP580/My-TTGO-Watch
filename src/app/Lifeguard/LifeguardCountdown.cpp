@@ -1,5 +1,4 @@
 #include "config.h"
-#include "quickglui/quickglui.h"
 
 #include "LifeguardCountdown.h"
 #include "Lifeguard.h"
@@ -117,18 +116,6 @@ static void StopLifeguardCountdown( lv_obj_t * obj, lv_event_t event )
             StopCountdown();
             break;
     }
-}
-
-static void ShowCountdown()
-{
-    lv_obj_set_hidden(lifeguardCountdown_label, false); //countdown
-    lv_obj_set_hidden(lifeguardCountdownStop_btn, false); //cancel countdown button
-}
-
-static void CloseCountdown()
-{
-    lv_obj_set_hidden(lifeguardCountdown_label, true); //countdown
-    lv_obj_set_hidden(lifeguardCountdownStop_btn, true); //cancel countdown button
 }
 
 static void StopCountdown() 
