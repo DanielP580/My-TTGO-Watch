@@ -48,6 +48,10 @@ void LifeguardSetup(void)
     LifeguardCountdownTileSetup();
 }
 
+void LifeguardSaveConfig(void){
+    lifeguardConfig.save();
+}
+
 //Return number of lifeguardApp tile
 uint32_t GetLifeguard_MainTileNum(void)
 {

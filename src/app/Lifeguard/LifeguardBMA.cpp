@@ -26,22 +26,17 @@ lv_obj_t * lifeguardStatus_label = NULL;
 lv_obj_t * lifeguardTemperature_label = NULL;
 
 Accel acceleration;
-int X_accel;
-int Y_accel;
-int Z_accel;
-int prevX_accel;
-int prevY_accel;
-int prevZ_accel;
+int X_accel, Y_accel, Z_accel;
+int prevX_accel, prevY_accel, prevZ_accel;
 
-char activity_c[23];
-char tries_c[10];
-char temperature_c[10];
+char activity_c[23], tries_c[10], temperature_c[20];
 
 int pressCount = 0;
 int tries = 0;
 int maxTries = 10;
 float temperatureTime_s = 0;
-float temperature = 0;
+float temperatureInside = 0;
+float temperatureOutside = 0;
 
 bool isFall = false;
 
@@ -92,8 +87,8 @@ void LifeguardBMATileSetup(uint32_t tileNum)
 
     //Temperature definitions
     lv_obj_t * lifeGuardBMA_temperatureobj = CreateListObject( lifeguardBMATile, lifeGuardBMA_statusobj);
-    char triesName[] = "Temp";
-    CreateListLabel(lifeGuardBMA_temperatureobj, triesName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
+    char tempName[] = "Temp In/Out";
+    CreateListLabel(lifeGuardBMA_temperatureobj, tempName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
     lifeguardTemperature_label = CreateListLabel(lifeGuardBMA_temperatureobj, defaultName, LV_ALIGN_CENTER, SETUP_STYLE);
 
     lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_Xobj);
@@ -188,12 +183,14 @@ static void UpdateLifeguardBMAStatus()
         Y_accel = int(acceleration.y);
         Z_accel = int(acceleration.z);  
 
-        temperature = ttgo->bma->temperature();
+        temperatureInside = ttgo->bma->temperature();
     }
 
     LifeguardBMAUpdateObjects();
     LifeguardBMACheckForFall();
-    LifeguardBMASendBluetoothMessage();
+    if(lifeguardConfig->devMode == true){
+        LifeguardBMASendBluetoothMessage();
+    }
 }
 
 static void LifeguardBMAUpdateObjects()
@@ -205,29 +202,29 @@ static void LifeguardBMAUpdateObjects()
     //X
     sprintf(dir_accel, "%d" , X_accel);
     lv_label_set_text(lifeguardX_label, dir_accel);
-    lv_obj_align(lifeguardX_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
+    lv_obj_align(lifeguardX_label, NULL, LV_ALIGN_IN_LEFT_MID, 95, 0);
 
     //Y
     sprintf(dir_accel, "%d", Y_accel);
     lv_label_set_text(lifeguardY_label, dir_accel);
-    lv_obj_align(lifeguardY_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
+    lv_obj_align(lifeguardY_label, NULL, LV_ALIGN_IN_LEFT_MID, 95, 0);
 
     //Z
     sprintf(dir_accel, "%d", Z_accel);
     lv_label_set_text(lifeguardZ_label, dir_accel);
-    lv_obj_align(lifeguardZ_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
+    lv_obj_align(lifeguardZ_label, NULL, LV_ALIGN_IN_LEFT_MID, 95, 0);
 
     //activity
     sprintf(activity_c, "%s", ttgo->bma->getActivity());
 
     lv_label_set_text(lifeguardStatus_label, activity_c);
-    lv_obj_align(lifeguardStatus_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
+    lv_obj_align(lifeguardStatus_label, NULL, LV_ALIGN_IN_LEFT_MID, 95, 0);
 
     //temperature
-    sprintf(temperature_c, "%8f", temperature);
+    sprintf(temperature_c, "%2.2f/%2.2f", temperatureInside, temperatureOutside);
 
     lv_label_set_text(lifeguardTemperature_label, temperature_c);
-    lv_obj_align(lifeguardTemperature_label, NULL, LV_ALIGN_IN_LEFT_MID, 90, 0);
+    lv_obj_align(lifeguardTemperature_label, NULL, LV_ALIGN_IN_LEFT_MID, 95, 0);
 }
 
 static void LifeguardBMACheckForFall()
@@ -251,7 +248,7 @@ static void LifeguardBMACheckForFall()
         }
     }
 
-    if((temperature > lifeguardConfig->tempMax_tempC) || (temperature < lifeguardConfig->tempMin_tempC))
+    if((temperatureInside > lifeguardConfig->tempMax_tempC) || (temperatureInside < lifeguardConfig->tempMin_tempC))
     {
         temperatureTime_s += BMA_TASK_PERIOD/1000;
         if (temperatureTime_s >= lifeguardConfig->maxTemperatureTime_s)
@@ -271,7 +268,7 @@ static void LifeguardBMACheckForFall()
 }
 static void LifeguardBMASendBluetoothMessage()
 {
-    blectl_send_msg( (char*)"\r\n{X:\"%d\", Y:\"%d\", Z:\"%d\", Ac:\"%s\", T:\"%s\"}\r\n", X_accel, Y_accel, Z_accel, activity_c, temperature_c);
+    blectl_send_msg( (char*)"\r\n{X:\"%d\", Y:\"%d\", Z:\"%d\", Ac:\"%s\", Ti:\"%8f\", To:\"%8f\"}\r\n", X_accel, Y_accel, Z_accel, activity_c, temperatureInside, temperatureOutside);
 }
 
 

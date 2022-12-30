@@ -12,5 +12,6 @@
     uint32_t GetLifeguard_BMATileNum(void);
     icon_t * GetLifeguard_Icon(void);
     lifeguardConfig_t * GetLifeguardConfig(void);
+    void LifeguardSaveConfig(void);
 
 #endif //  _LIFEGUARD_H

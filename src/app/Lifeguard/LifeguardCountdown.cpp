@@ -30,7 +30,8 @@ static time_t prevTime;
 
 static int brightness;
 
-bool isCountdown = false;;
+bool isCountdown = false;
+bool isTestCountdown = false;
 
 static void StopLifeguardCountdownEvent(lv_obj_t * obj, lv_event_t event);
 static void LifeguardCountDownUpdate();
@@ -52,9 +53,6 @@ void LifeguardCountdownTileSetup(void)
     lv_obj_t * lifeguardCountdown_obj = CreateObject(lifeguardCountdownTile, NULL, LV_ALIGN_CENTER, APP_STYLE);
     char defaultText[] = "00";
     lifeguardCountdown_label = CreateListLabel(lifeguardCountdown_obj, defaultText, LV_ALIGN_CENTER, &lifeguardMainCountdown_style);
-
-    lifeguardCountdownStop_btn = wf_add_stop_button(lifeguardCountdownTile, StopLifeguardCountdownEvent, SYSTEM_ICON_STYLE);
-    lv_obj_align(lifeguardCountdownStop_btn, lifeguardCountdownTile, LV_ALIGN_IN_RIGHT_MID, 0, 0);
 
     lv_obj_t * lifeguardCountdownStopSlider_obj = CreateObject(lifeguardCountdownTile, NULL, LV_ALIGN_IN_BOTTOM_MID, APP_STYLE);
     lifeguardCountdownStop_slider = CreateSlider(lifeguardCountdownStopSlider_obj, LV_ALIGN_IN_BOTTOM_MID, TURN_OFF_COUNTDOWN, TURN_ON_COUNTDOWN);
@@ -100,6 +98,11 @@ void LifeguardCountdownStart()
         time(&prevTime);
         lifeguardCountDown_task = lv_task_create(LifeguardCountDownTask, 1000, LV_TASK_PRIO_MID, NULL);
     }
+}
+
+void LifeguardCountdownTestStart(){
+    isTestCountdown = true;
+    LifeguardCountdownStart();
 }
 
 bool GetCountdownStatus()
@@ -163,11 +166,14 @@ void LifeguardCountDownTask(lv_task_t * task)
 
     LifeguardCountDownUpdate();
     motor_vibe(10, true);
-    //sound_play_progmem_wav(piep_wav, piep_wav_len);
+    sound_play_progmem_wav(piep_wav, piep_wav_len);
 
     if (countDown_s <= 0)
     {
-        blectl_send_msg( (char*)"\r\n{text:\"HELP\", Number:\"%s\"}\r\n", lifeguardConfig->number);
+        if (isTestCountdown == false){
+            blectl_send_msg( (char*)"\r\n{text:\"HELP\", Number:\"%d\"}\r\n", lifeguardConfig->number);
+        }
+        isTestCountdown = false;
         LifeguardCountdownStop();
     }
 }

@@ -14,6 +14,7 @@
             int32_t tempMax_tempC = 35;
             int32_t tempMin_tempC = -5;
             int32_t maxTemperatureTime_s = 300;
+            bool devMode = false;
 
         protected:
             virtual bool onLoad(JsonDocument& document);
