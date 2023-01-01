@@ -22,6 +22,7 @@ lv_obj_t * lifeguardZ_textfield = NULL;
 lv_obj_t * lifeguardX_label = NULL;
 lv_obj_t * lifeguardY_label = NULL;
 lv_obj_t * lifeguardZ_label = NULL;
+lv_obj_t * lifeguardSVM_label = NULL;
 lv_obj_t * lifeguardStatus_label = NULL;
 lv_obj_t * lifeguardTemperature_label = NULL;
 
@@ -34,6 +35,7 @@ char activity_c[23], tries_c[10], temperature_c[20];
 int pressCount = 0;
 int tries = 0;
 int maxTries = 10;
+int SVM = 0;
 float temperatureTime_s = 0;
 float temperatureInside = 0;
 float temperatureOutside = 0;
@@ -79,6 +81,12 @@ void LifeguardBMATileSetup(uint32_t tileNum)
     CreateListLabel(lifeGuardBMA_Zobj, zName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
     lifeguardZ_label = CreateListLabel(lifeGuardBMA_Zobj, defaultName, LV_ALIGN_CENTER, SETUP_STYLE);
 
+    //SVM definitions
+    lv_obj_t * lifeGuardBMA_SVMobj = CreateListObject( lifeguardBMATile, lifeGuardBMA_Zobj);
+    char SVMName[] = "SVM";
+    CreateListLabel(lifeGuardBMA_SVMobj, SVMName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
+    lifeguardSVM_label = CreateListLabel(lifeGuardBMA_SVMobj, defaultName, LV_ALIGN_CENTER, SETUP_STYLE);
+
     //Status definitions
     lv_obj_t * lifeGuardBMA_statusobj = CreateListObject( lifeguardBMATile, lifeGuardBMA_Zobj);
     char statusName[] = "Status";
@@ -94,6 +102,7 @@ void LifeguardBMATileSetup(uint32_t tileNum)
     lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_Xobj);
     lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_Yobj);
     lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_Zobj);
+    lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_SVMobj);
     lv_tileview_add_element( lifeguardBMATile, lifeguardStatus_label);
     lv_tileview_add_element( lifeguardBMATile, lifeGuardBMA_temperatureobj);
 
@@ -199,6 +208,7 @@ static void LifeguardBMAUpdateObjects()
     TTGOClass *ttgo = TTGOClass::getWatch();
 
     char dir_accel[10];
+    char SVM_c[10];
     //X
     sprintf(dir_accel, "%d" , X_accel);
     lv_label_set_text(lifeguardX_label, dir_accel);
@@ -213,6 +223,11 @@ static void LifeguardBMAUpdateObjects()
     sprintf(dir_accel, "%d", Z_accel);
     lv_label_set_text(lifeguardZ_label, dir_accel);
     lv_obj_align(lifeguardZ_label, NULL, LV_ALIGN_IN_LEFT_MID, 95, 0);
+
+    //Z
+    sprintf(SVM_c, "%d", SVM);
+    lv_label_set_text(lifeguardSVM_label, SVM_c);
+    lv_obj_align(lifeguardSVM_label, NULL, LV_ALIGN_IN_LEFT_MID, 95, 0);
 
     //activity
     sprintf(activity_c, "%s", ttgo->bma->getActivity());
@@ -231,7 +246,9 @@ static void LifeguardBMACheckForFall()
 {
     lifeguardConfig_t *lifeguardConfig = GetLifeguardConfig();
 
-    if(!isFall && (sqrt(pow(X_accel - prevX_accel, 2) + pow(Y_accel - prevY_accel, 2 ) + pow(Z_accel - prevZ_accel, 2 )) >= lifeguardConfig->sensCalib))
+    SVM = sqrt(pow(X_accel, 2) + pow(Y_accel, 2 ) + pow(Z_accel, 2 ));
+
+    if(!isFall && (SVM >= lifeguardConfig->sensCalib))
     {
         isFall = true;
     }
@@ -248,7 +265,9 @@ static void LifeguardBMACheckForFall()
         }
     }
 
-    if((temperatureInside > lifeguardConfig->tempMax_tempC) || (temperatureInside < lifeguardConfig->tempMin_tempC))
+    temperatureOutside = temperatureInside - 18.5;
+
+    if((temperatureOutside > lifeguardConfig->tempMax_tempC) || (temperatureOutside < lifeguardConfig->tempMin_tempC))
     {
         temperatureTime_s += BMA_TASK_PERIOD/1000;
         if (temperatureTime_s >= lifeguardConfig->maxTemperatureTime_s)
@@ -268,7 +287,7 @@ static void LifeguardBMACheckForFall()
 }
 static void LifeguardBMASendBluetoothMessage()
 {
-    blectl_send_msg( (char*)"\r\n{X:\"%d\", Y:\"%d\", Z:\"%d\", Ac:\"%s\", Ti:\"%8f\", To:\"%8f\"}\r\n", X_accel, Y_accel, Z_accel, activity_c, temperatureInside, temperatureOutside);
+    blectl_send_msg( (char*)"\r\n{X:\"%d\", Y:\"%d\", Z:\"%d\", SVM:\"%d\" Ac:\"%s\", Ti:\"%2.2f\", To:\"%2.2f\"}\r\n", X_accel, Y_accel, Z_accel, SVM, activity_c, temperatureInside, temperatureOutside);
 }
 
 

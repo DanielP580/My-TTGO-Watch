@@ -52,12 +52,12 @@ void LifeguardSetupTileSetup(uint32_t tileNum)
     lv_textarea_set_cursor_hidden( lifeguardNumber_textfield, true);
 
     //EmergencyTime line definitions
-    lv_obj_t * lifeGuardEmergencyTime_obj = CreateListObject(lifeguardSetupTile, lifeGuardNumber_obj);
-    char emergencyTimeName[] = "Emergency\ntime";
-    CreateListLabel(lifeGuardEmergencyTime_obj, emergencyTimeName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
-    sprintf(buffer, "%d", lifeguardConfig->emergencyTime_s);
-    lifeguardEmergencyTime_textfield = CreateListTextarea(lifeGuardEmergencyTime_obj, buffer, LifeguardNumTextAreaEventCb);
-    lv_textarea_set_cursor_hidden( lifeguardEmergencyTime_textfield, true);
+    // lv_obj_t * lifeGuardEmergencyTime_obj = CreateListObject(lifeguardSetupTile, lifeGuardNumber_obj);
+    // char emergencyTimeName[] = "Emergency\ntime";
+    // CreateListLabel(lifeGuardEmergencyTime_obj, emergencyTimeName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
+    // sprintf(buffer, "%d", lifeguardConfig->emergencyTime_s);
+    // lifeguardEmergencyTime_textfield = CreateListTextarea(lifeGuardEmergencyTime_obj, buffer, LifeguardNumTextAreaEventCb);
+    // lv_textarea_set_cursor_hidden( lifeguardEmergencyTime_textfield, true);
 
     //SensCalib line definitions
     // lv_obj_t * lifeGuardSensCalib_obj = CreateListObject( lifeguardSetupTile, lifeGuardEmergencyTime_obj);
@@ -89,12 +89,12 @@ void LifeguardSetupTileSetup(uint32_t tileNum)
     //sprintf(buffer, "%d",lifeguardConfig->maxTemperatureTime_s);
     //lifeguardMaxTemperatureTime_textfield = CreateListTextarea(lifeGuardMaxTemperatureTime_obj, buffer, LifeguardNumTextAreaEventCb);
 
-    //lv_obj_t * devMode_onoff = wf_add_labeled_switch( lifeguardSetupTile, "devMode", &DevMode_switch, true, NULL, SETUP_STYLE);
-    //lv_obj_align( devMode_onoff, lifeGuardEmergencyTime_obj, LV_ALIGN_OUT_BOTTOM_MID, 0, THEME_PADDING );
+    lv_obj_t * devMode_onoff = wf_add_labeled_switch( lifeguardSetupTile, "devMode", &DevMode_switch, true, NULL, SETUP_STYLE);
+    lv_obj_align( devMode_onoff, lifeGuardNumber_obj, LV_ALIGN_OUT_BOTTOM_MID, 0, THEME_PADDING );
 
     //Add elements to tile
     lv_tileview_add_element(lifeguardSetupTile, lifeGuardNumber_obj);
-    lv_tileview_add_element(lifeguardSetupTile, lifeGuardEmergencyTime_obj);
+    // lv_tileview_add_element(lifeguardSetupTile, lifeGuardEmergencyTime_obj);
     // lv_tileview_add_element(lifeguardSetupTile, lifeGuardSensCalib_obj);
     // lv_tileview_add_element(lifeguardSetupTile, lifeGuardTempMax_obj);
     // lv_tileview_add_element(lifeguardSetupTile, lifeGuardTempMin_obj);
@@ -113,12 +113,13 @@ static void LifeguardSetupExitEvent( lv_obj_t * obj, lv_event_t event )
         keyboard_hide();
         lifeguardConfig_t *lifeguardConfig = GetLifeguardConfig();
         strncpy(lifeguardConfig->number, lv_textarea_get_text(lifeguardNumber_textfield), sizeof(lifeguardConfig->number));
-        lifeguardConfig->emergencyTime_s = atoi(lv_textarea_get_text(lifeguardEmergencyTime_textfield));
+        //int32_t time = atoi(lv_textarea_get_text(lifeguardEmergencyTime_textfield));
+        //lifeguardConfig->emergencyTime_s = time;
         //lifeguardConfig->sensCalib = atoi(lv_textarea_get_text(lifeguardSensCalib_textfield));
         //lifeguardConfig->tempMax_tempC = atoi(lv_textarea_get_text(lifeguardTempMax_textfield));
         //lifeguardConfig->tempMin_tempC = atoi(lv_textarea_get_text(lifeguardTempMin_textfield));
         lifeguardConfig->devMode = lv_switch_get_state(DevMode_switch);
-        lifeguardConfig->save();
+        LifeguardSaveConfig();
         //LifeguardCountdownCreateStopButton();
         //LifeguardMainCreateButtons();
         mainbar_jump_back();
