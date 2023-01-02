@@ -33,14 +33,13 @@ int prevX_accel, prevY_accel, prevZ_accel;
 char activity_c[23], tries_c[10], temperature_c[20];
 
 int pressCount = 0;
-int tries = 0;
-int maxTries = 10;
 int SVM = 0;
+int fallTime_ms = 0;
 float temperatureTime_s = 0;
 float temperatureInside = 0;
 float temperatureOutside = 0;
 
-bool isFall = false;
+bool isFall = true;
 
 lv_task_t * lifeguardBMA_task;
 
@@ -51,6 +50,7 @@ bool LifeguardBMAActivityLoopCb(EventBits_t event, void *arg);
 bool LifeguardBMAMotionLoopCb(EventBits_t event, void *arg);
 static void LifeguardBMASendBluetoothMessage();
 static void LifeguardBMACheckForFall();
+static void LifeguardBMACheckForTemperature();
 static void LifeguardBMAUpdateObjects();
 
 void LifeguardBMATileSetup(uint32_t tileNum)
@@ -124,7 +124,7 @@ static void SetupLifeguardBMA()
 
     //this part is not supported by official BMA library it will not work without modification
     anymotionconfig.nomotion_sel = BMA423_ALL_AXIS_EN;
-    anymotionconfig.threshold = 4; //0.5 g
+    anymotionconfig.threshold = 1; //0.5 g per 1
     anymotionconfig.duration = 1; //20ms movement
     //uses function that is not developed in bma423.h
     ttgo->bma->set_any_mo_config(&anymotionconfig);
@@ -197,6 +197,7 @@ static void UpdateLifeguardBMAStatus()
 
     LifeguardBMAUpdateObjects();
     LifeguardBMACheckForFall();
+    LifeguardBMACheckForTemperature();
     if(lifeguardConfig->devMode == true){
         LifeguardBMASendBluetoothMessage();
     }
@@ -247,24 +248,31 @@ static void LifeguardBMACheckForFall()
     lifeguardConfig_t *lifeguardConfig = GetLifeguardConfig();
 
     SVM = sqrt(pow(X_accel, 2) + pow(Y_accel, 2 ) + pow(Z_accel, 2 ));
-
-    if(!isFall && (SVM >= lifeguardConfig->sensCalib))
+    int treshold = int(lifeguardConfig->sensTreshold);
+    if((isFall == false) && (SVM >= treshold))
     {
         isFall = true;
     }
 
-    if(isFall && !GetCountdownStatus())
+    if((isFall == true) && !GetCountdownStatus())
     {
-        if(((0 == strncmp(activity_c,"BMA423_USER_STATIONARY", 23)) || (0 ==strncmp(activity_c,"None", 4))))
+        fallTime_ms += BMA_TASK_PERIOD;
+        blectl_send_msg( (char*)"\r\n{Ft:\"%d\", mFt:\"%d\"}\r\n", fallTime_ms, lifeguardConfig->maxfallTime_ms);
+        if (fallTime_ms >= lifeguardConfig->maxfallTime_ms)
         {
+            fallTime_ms = 0;
             LifeguardCountdownStart();
-        } 
-        else if(++tries >= maxTries)
-        {
-            ResetLifeguardBMAFallStatus();
         }
+        if ((fallTime_ms >= lifeguardConfig->minfallTime_ms) && (SVM > lifeguardConfig->sensMinimal))
+        {
+            fallTime_ms = 0;
+            isFall = false;
+        } 
     }
+}
 
+static void LifeguardBMACheckForTemperature(){
+    lifeguardConfig_t *lifeguardConfig = GetLifeguardConfig();
     temperatureOutside = temperatureInside - 18.5;
 
     if((temperatureOutside > lifeguardConfig->tempMax_tempC) || (temperatureOutside < lifeguardConfig->tempMin_tempC))
@@ -280,17 +288,21 @@ static void LifeguardBMACheckForFall()
     {
         temperatureTime_s = 0;
     }
-
-    prevX_accel = X_accel;
-    prevY_accel = Y_accel;
-    prevZ_accel = Z_accel;
 }
+
 static void LifeguardBMASendBluetoothMessage()
 {
-    blectl_send_msg( (char*)"\r\n{X:\"%d\", Y:\"%d\", Z:\"%d\", SVM:\"%d\" Ac:\"%s\", Ti:\"%2.2f\", To:\"%2.2f\"}\r\n", X_accel, Y_accel, Z_accel, SVM, activity_c, temperatureInside, temperatureOutside);
+    lifeguardConfig_t *lifeguardConfig = GetLifeguardConfig();
+
+    char buff[10];
+    if (isFall == true){
+        sprintf(buff, "true");
+    }
+    else if (isFall == false){
+        sprintf(buff, "false");
+    }
+    blectl_send_msg( (char*)"\r\n{X:\"%d\", Y:\"%d\", Z:\"%d\", SVM:\"%d\", T:\"%d\", F:\"%s\", Ft:\"%d\", Ac:\"%s\", Ti:\"%2.2f\", To:\"%2.2f\"}\r\n", X_accel, Y_accel, Z_accel, SVM, lifeguardConfig->sensTreshold, buff, fallTime_ms, activity_c, temperatureInside, temperatureOutside);
 }
-
-
 
 void LifeguardBMATask(lv_task_t * task)
 {

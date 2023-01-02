@@ -10,6 +10,8 @@
 //Tile definition
 lv_obj_t * lifeguardSetupTile = NULL;
 
+lv_obj_t * lifeguardDefault_btn = NULL;
+
 //Textfields definiton
 lv_obj_t * lifeguardNumber_textfield = NULL;
 lv_obj_t * lifeguardEmergencyTime_textfield = NULL;
@@ -23,6 +25,7 @@ static lv_obj_t * DevMode_switch = NULL;
 static void LifeguardTextAreaEventCb(lv_obj_t * obj, lv_event_t event);
 static void LifeguardNumTextAreaEventCb(lv_obj_t * obj, lv_event_t event);
 static void LifeguardSetupExitEvent(lv_obj_t * obj, lv_event_t event );
+static void LifeguardSetupDefaultEventCb(lv_obj_t * obj, lv_event_t event);
 
 /*
     /brief
@@ -89,8 +92,11 @@ void LifeguardSetupTileSetup(uint32_t tileNum)
     //sprintf(buffer, "%d",lifeguardConfig->maxTemperatureTime_s);
     //lifeguardMaxTemperatureTime_textfield = CreateListTextarea(lifeGuardMaxTemperatureTime_obj, buffer, LifeguardNumTextAreaEventCb);
 
-    lv_obj_t * devMode_onoff = wf_add_labeled_switch( lifeguardSetupTile, "devMode", &DevMode_switch, true, NULL, SETUP_STYLE);
-    lv_obj_align( devMode_onoff, lifeGuardNumber_obj, LV_ALIGN_OUT_BOTTOM_MID, 0, THEME_PADDING );
+    lv_obj_t * devMode_onoff = wf_add_labeled_switch( lifeguardSetupTile, "devMode", &DevMode_switch, lifeguardConfig->devMode, NULL, SETUP_STYLE);
+    lv_obj_align( devMode_onoff, lifeGuardNumber_obj, LV_ALIGN_IN_RIGHT_MID, -30, 30);
+
+    lifeguardDefault_btn = wf_add_button( lifeguardSetupTile, "Default", lv_disp_get_hor_res(NULL)/3, lv_disp_get_ver_res(NULL)/5, LifeguardSetupDefaultEventCb);
+    lv_obj_align(lifeguardDefault_btn, lifeguardSetupTile, LV_ALIGN_IN_TOP_MID, 0, lv_disp_get_ver_res(NULL) * 3/4);
 
     //Add elements to tile
     lv_tileview_add_element(lifeguardSetupTile, lifeGuardNumber_obj);
@@ -98,6 +104,16 @@ void LifeguardSetupTileSetup(uint32_t tileNum)
     // lv_tileview_add_element(lifeguardSetupTile, lifeGuardSensCalib_obj);
     // lv_tileview_add_element(lifeguardSetupTile, lifeGuardTempMax_obj);
     // lv_tileview_add_element(lifeguardSetupTile, lifeGuardTempMin_obj);
+}
+
+
+static void LifeguardSetupDefaultEventCb(lv_obj_t * obj, lv_event_t event){
+    switch( event ) {
+        case( LV_EVENT_CLICKED ):
+        lifeguardConfig_t *lifeguardConfig = GetLifeguardConfig();
+        lifeguardConfig->Default();
+        break;
+    }
 }
 
 /*
