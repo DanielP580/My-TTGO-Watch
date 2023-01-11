@@ -88,7 +88,7 @@ void LifeguardBMATileSetup(uint32_t tileNum)
     lifeguardSVM_label = CreateListLabel(lifeGuardBMA_SVMobj, defaultName, LV_ALIGN_CENTER, SETUP_STYLE);
 
     //Status definitions
-    lv_obj_t * lifeGuardBMA_statusobj = CreateListObject( lifeguardBMATile, lifeGuardBMA_Zobj);
+    lv_obj_t * lifeGuardBMA_statusobj = CreateListObject( lifeguardBMATile, lifeGuardBMA_SVMobj);
     char statusName[] = "Status";
     CreateListLabel(lifeGuardBMA_statusobj, statusName, LV_ALIGN_IN_LEFT_MID, SETUP_STYLE);
     lifeguardStatus_label = CreateListLabel(lifeGuardBMA_statusobj, defaultName, LV_ALIGN_CENTER, SETUP_STYLE);

@@ -11,7 +11,7 @@
 lv_obj_t * CreateListObject(lv_obj_t * tileObj, lv_obj_t * alignObj)
 {
     lv_obj_t * obj = lv_obj_create( tileObj, NULL);
-    lv_obj_set_size(obj, lv_disp_get_hor_res(NULL), 35);
+    lv_obj_set_size(obj, lv_disp_get_hor_res(NULL), 25);
     lv_obj_add_style(obj, LV_OBJ_PART_MAIN, SETUP_STYLE);
     lv_obj_align(obj, alignObj, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
     return obj;
